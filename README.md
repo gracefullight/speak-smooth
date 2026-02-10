@@ -17,6 +17,27 @@ SpeakSmooth is a macOS menu bar app that captures your speech, improves grammar/
 - XcodeGen (`brew install xcodegen`)
 - mise (optional, recommended)
 
+## Installation
+
+Install with Homebrew Cask:
+
+```bash
+brew install --cask gracefullight/homebrew-tap/speak-smooth
+```
+
+Or tap first, then install:
+
+```bash
+brew tap gracefullight/homebrew-tap
+brew install --cask speak-smooth
+```
+
+Update to the latest release:
+
+```bash
+brew upgrade --cask speak-smooth
+```
+
 ## Local setup
 
 1. Generate project:

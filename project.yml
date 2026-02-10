@@ -59,5 +59,6 @@ targets:
       - target: SpeakSmooth
     settings:
       base:
+        GENERATE_INFOPLIST_FILE: true
         BUNDLE_LOADER: "$(TEST_HOST)"
         TEST_HOST: "$(BUILT_PRODUCTS_DIR)/SpeakSmooth.app/Contents/MacOS/SpeakSmooth"

@@ -4,9 +4,8 @@ struct MenuBarPopover: View {
     @Environment(AppState.self) private var appState
     @Environment(AppSettings.self) private var settings
     @Environment(AuthManager.self) private var authManager
+    @Environment(\.openWindow) private var openWindow
     var coordinator: PipelineCoordinator?
-
-    @State private var showSettings = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -15,7 +14,7 @@ struct MenuBarPopover: View {
                     .font(.headline)
                 Spacer()
                 Button {
-                    showSettings.toggle()
+                    openWindow(id: "settings")
                 } label: {
                     Image(systemName: "gearshape")
                 }
@@ -91,10 +90,5 @@ struct MenuBarPopover: View {
             .padding(.vertical, 8)
         }
         .frame(width: 320)
-        .sheet(isPresented: $showSettings) {
-            SettingsView()
-                .environment(settings)
-                .environment(authManager)
-        }
     }
 }

@@ -33,5 +33,11 @@ struct SpeakSmoothApp: App {
             Image(systemName: appState.menuBarIconName)
         }
         .menuBarExtraStyle(.window)
+
+        WindowGroup("Settings", id: "settings") {
+            SettingsView()
+                .environment(settings)
+                .environment(authManager)
+        }
     }
 }

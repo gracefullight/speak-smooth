@@ -2,21 +2,6 @@
 
 SpeakSmooth is a macOS menu bar app that captures your speech, improves grammar/naturalness, and saves the final sentence to Microsoft To Do.
 
-## What it does
-
-- Captures microphone audio with `AVAudioEngine`
-- Detects speech segments with Silero VAD (`RealTimeCutVADLibrary`)
-- Transcribes locally with WhisperKit (`openai/whisper-base.en`)
-- Rewrites text using Apple Foundation Models (primary) or OpenRouter (fallback)
-- Saves the revised sentence + corrections to Microsoft To Do via Graph API
-
-## Requirements
-
-- macOS 14+
-- Xcode 16+
-- XcodeGen (`brew install xcodegen`)
-- mise (optional, recommended)
-
 ## Installation
 
 Install with Homebrew Cask:
@@ -37,6 +22,21 @@ Update to the latest release:
 ```bash
 brew upgrade --cask speak-smooth
 ```
+
+## What it does
+
+- Captures microphone audio with `AVAudioEngine`
+- Detects speech segments with Silero VAD (`RealTimeCutVADLibrary`)
+- Transcribes locally with WhisperKit (`openai/whisper-base.en`)
+- Rewrites text using Apple Foundation Models (primary) or OpenRouter (fallback)
+- Saves the revised sentence + corrections to Microsoft To Do via Graph API
+
+## Requirements
+
+- macOS 14+
+- Xcode 16+
+- XcodeGen (`brew install xcodegen`)
+- mise (optional, recommended)
 
 ## Local setup
 

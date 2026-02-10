@@ -11,18 +11,26 @@
 		145A8BCAE82B468F5798FEB3 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 66CADE256F01CED6F5D1D64F /* WhisperKit */; };
 		213C6161FC1E49DE7791813F /* RewriteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1B4943D4809801652084E /* RewriteService.swift */; };
 		23A189A8ADF32E55E791FB15 /* AppleRewriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BA36A62753DA9572E9640D /* AppleRewriter.swift */; };
+		26402FE9EEB49298EA05D25B /* TodoClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EFFF4F2D95DBC774BB93C632 /* TodoClientTests.swift */; };
 		2A96FC3A86E2C626575B0636 /* OpenRouterRewriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77DDB5770F053964E011CA26 /* OpenRouterRewriter.swift */; };
 		421E9199522BA03B9EEFD886 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E95B44754E17AD46CC6181 /* AuthManager.swift */; };
 		443BFFC773AD677472ED3A61 /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 210D0BAE72135D8CD57C858D /* AudioCaptureManager.swift */; };
 		529E44D61BEE333AC3EC4A20 /* SpeakSmoothTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141C42A1E3FF77600C119CB9 /* SpeakSmoothTests.swift */; };
 		630061D1C7D909C26447A59D /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F68ADB28D79EFE46883FB85B /* TranscriptionService.swift */; };
+		6ADC9AF54DC2657872183848 /* SegmentBuilderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3740C4D1D0DBA1E9F00278C /* SegmentBuilderTests.swift */; };
+		6C2B7687A6595323B5344367 /* OpenRouterRewriterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BB963254A4096461508922F /* OpenRouterRewriterTests.swift */; };
+		6F65CF513D40F6E56DA1273D /* PipelineCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C06E7A66A9A8B86D2B60F6 /* PipelineCoordinator.swift */; };
 		70EDBAC93F9BEBE7FC4CBDD4 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD08D8642B943CE4C38256ED /* Settings.swift */; };
 		71BE217D3ACD556E4D68DCF8 /* SpeakSmoothApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653A12611B71E5CCC3E59F3D /* SpeakSmoothApp.swift */; };
 		7986A178A119527B4921F7E2 /* TaskPreviewCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828E0D53F196682B4891103D /* TaskPreviewCard.swift */; };
+		925015E70C82F62AAD670E8D /* RewriteTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84415F2CADE0CF0F7B2C0046 /* RewriteTests.swift */; };
+		9B60013EE693B225FA8B5D04 /* AppStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5A063B670146EB94BB94555 /* AppStateTests.swift */; };
 		C170C79EF5984DCCA9C27559 /* MSAL in Frameworks */ = {isa = PBXBuildFile; productRef = FDB0EC9EA56548E3658D21CA /* MSAL */; };
 		CCE164506B32ECB131E7FFF5 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 878A1E8D9BCCBCA375455071 /* AppState.swift */; };
+		CE4A2508F695DA274DAC96F9 /* CoverageBoostTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E15A4CFB3531A469A5E3BE27 /* CoverageBoostTests.swift */; };
 		D69C445F8BAF3806718E3B8F /* StatusIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D92960F30A8E645569132D /* StatusIndicator.swift */; };
 		D733AE445D0FCCE69A03B4F3 /* RealTimeCutVADLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 42E86C96CBC252B90FC57159 /* RealTimeCutVADLibrary */; };
+		EDC924ADA747065A24D573F4 /* SettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5D5E3237691FEA2BA2088B0 /* SettingsTests.swift */; };
 		F21DEB3317E86CC40399D266 /* SegmentBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB54DA2DEAE391EEE6B94FEB /* SegmentBuilder.swift */; };
 		FDBB97985FBB2740A19C60F7 /* TodoClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBBD2824A88306F6D54AA31F /* TodoClient.swift */; };
 		FDF496906317158FE92E5797 /* MenuBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82DFC538BF262A9C43B3EBFF /* MenuBarPopover.swift */; };
@@ -49,12 +57,20 @@
 		77DDB5770F053964E011CA26 /* OpenRouterRewriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterRewriter.swift; sourceTree = "<group>"; };
 		828E0D53F196682B4891103D /* TaskPreviewCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPreviewCard.swift; sourceTree = "<group>"; };
 		82DFC538BF262A9C43B3EBFF /* MenuBarPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopover.swift; sourceTree = "<group>"; };
+		84415F2CADE0CF0F7B2C0046 /* RewriteTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewriteTests.swift; sourceTree = "<group>"; };
 		878A1E8D9BCCBCA375455071 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		9BB963254A4096461508922F /* OpenRouterRewriterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterRewriterTests.swift; sourceTree = "<group>"; };
 		A0A1B4943D4809801652084E /* RewriteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewriteService.swift; sourceTree = "<group>"; };
 		C1D92960F30A8E645569132D /* StatusIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusIndicator.swift; sourceTree = "<group>"; };
 		C2EB76F4DBF6B66B4C2D07A5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		C5D5E3237691FEA2BA2088B0 /* SettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTests.swift; sourceTree = "<group>"; };
 		CBBD2824A88306F6D54AA31F /* TodoClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoClient.swift; sourceTree = "<group>"; };
+		D5A063B670146EB94BB94555 /* AppStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStateTests.swift; sourceTree = "<group>"; };
+		E15A4CFB3531A469A5E3BE27 /* CoverageBoostTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoverageBoostTests.swift; sourceTree = "<group>"; };
+		E8C06E7A66A9A8B86D2B60F6 /* PipelineCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PipelineCoordinator.swift; sourceTree = "<group>"; };
+		EFFF4F2D95DBC774BB93C632 /* TodoClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoClientTests.swift; sourceTree = "<group>"; };
 		F0BA36A62753DA9572E9640D /* AppleRewriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleRewriter.swift; sourceTree = "<group>"; };
+		F3740C4D1D0DBA1E9F00278C /* SegmentBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentBuilderTests.swift; sourceTree = "<group>"; };
 		F68ADB28D79EFE46883FB85B /* TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
 		FB54DA2DEAE391EEE6B94FEB /* SegmentBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentBuilder.swift; sourceTree = "<group>"; };
 		FD08D8642B943CE4C38256ED /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
@@ -103,7 +119,14 @@
 		4D8BD43C62F91D814CD49622 /* SpeakSmoothTests */ = {
 			isa = PBXGroup;
 			children = (
+				D5A063B670146EB94BB94555 /* AppStateTests.swift */,
+				E15A4CFB3531A469A5E3BE27 /* CoverageBoostTests.swift */,
+				9BB963254A4096461508922F /* OpenRouterRewriterTests.swift */,
+				84415F2CADE0CF0F7B2C0046 /* RewriteTests.swift */,
+				F3740C4D1D0DBA1E9F00278C /* SegmentBuilderTests.swift */,
+				C5D5E3237691FEA2BA2088B0 /* SettingsTests.swift */,
 				141C42A1E3FF77600C119CB9 /* SpeakSmoothTests.swift */,
+				EFFF4F2D95DBC774BB93C632 /* TodoClientTests.swift */,
 			);
 			path = SpeakSmoothTests;
 			sourceTree = "<group>";
@@ -118,6 +141,7 @@
 				96480BB1E5DF83FEDC7FF418 /* Rewrite */,
 				1279CFB716C8FEB8994AAADA /* STT */,
 				439EAEC8791C42CF3FD632E8 /* Views */,
+				E8C06E7A66A9A8B86D2B60F6 /* PipelineCoordinator.swift */,
 				653A12611B71E5CCC3E59F3D /* SpeakSmoothApp.swift */,
 			);
 			path = SpeakSmooth;
@@ -268,7 +292,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B60013EE693B225FA8B5D04 /* AppStateTests.swift in Sources */,
+				CE4A2508F695DA274DAC96F9 /* CoverageBoostTests.swift in Sources */,
+				6C2B7687A6595323B5344367 /* OpenRouterRewriterTests.swift in Sources */,
+				925015E70C82F62AAD670E8D /* RewriteTests.swift in Sources */,
+				6ADC9AF54DC2657872183848 /* SegmentBuilderTests.swift in Sources */,
+				EDC924ADA747065A24D573F4 /* SettingsTests.swift in Sources */,
 				529E44D61BEE333AC3EC4A20 /* SpeakSmoothTests.swift in Sources */,
+				26402FE9EEB49298EA05D25B /* TodoClientTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -282,6 +313,7 @@
 				421E9199522BA03B9EEFD886 /* AuthManager.swift in Sources */,
 				FDF496906317158FE92E5797 /* MenuBarPopover.swift in Sources */,
 				2A96FC3A86E2C626575B0636 /* OpenRouterRewriter.swift in Sources */,
+				6F65CF513D40F6E56DA1273D /* PipelineCoordinator.swift in Sources */,
 				213C6161FC1E49DE7791813F /* RewriteService.swift in Sources */,
 				F21DEB3317E86CC40399D266 /* SegmentBuilder.swift in Sources */,
 				70EDBAC93F9BEBE7FC4CBDD4 /* Settings.swift in Sources */,
@@ -378,6 +410,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
@@ -393,6 +426,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",

@@ -1,0 +1,273 @@
+import AppKit
+import Foundation
+import SwiftUI
+import Testing
+@testable import SpeakSmooth
+
+private final class MockURLProtocol: URLProtocol {
+    nonisolated(unsafe) static var requestHandler: ((URLRequest) throws -> (URLResponse, Data))?
+    private static let lock = NSLock()
+
+    static func setHandler(_ handler: @escaping (URLRequest) throws -> (URLResponse, Data)) {
+        lock.lock()
+        requestHandler = handler
+        lock.unlock()
+    }
+
+    static func clearHandler() {
+        lock.lock()
+        requestHandler = nil
+        lock.unlock()
+    }
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        true
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        Self.lock.lock()
+        let handler = Self.requestHandler
+        Self.lock.unlock()
+
+        guard let handler else {
+            client?.urlProtocol(self, didFailWithError: NSError(domain: "MockURLProtocol", code: -1))
+            return
+        }
+
+        do {
+            let (response, data) = try handler(request)
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
+        }
+    }
+
+    override func stopLoading() {}
+}
+
+@Suite("Coverage Boost Tests", .serialized)
+struct CoverageBoostTests {
+    private func makeMockSession(handler: @escaping (URLRequest) throws -> (URLResponse, Data)) -> URLSession {
+        MockURLProtocol.setHandler(handler)
+        let config = URLSessionConfiguration.ephemeral
+        config.protocolClasses = [MockURLProtocol.self]
+        return URLSession(configuration: config)
+    }
+
+    @Test("TodoClient fetchTodoLists success path")
+    func fetchTodoListsSuccess() async throws {
+        defer { MockURLProtocol.clearHandler() }
+
+        let session = makeMockSession { request in
+            #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token-123")
+            let payload = """
+            {"value":[{"id":"a","displayName":"Inbox"},{"id":"b","displayName":"English"}]}
+            """
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, Data(payload.utf8))
+        }
+
+        let client = TodoClient(getAccessToken: { "token-123" }, session: session)
+        let lists = try await client.fetchTodoLists()
+        #expect(lists.count == 2)
+        #expect(lists[0].displayName == "Inbox")
+    }
+
+    @Test("TodoClient createTask success path")
+    func createTaskSuccess() async throws {
+        defer { MockURLProtocol.clearHandler() }
+
+        let session = makeMockSession { request in
+            #expect(request.httpMethod == "POST")
+            #expect(request.url?.absoluteString.contains("/tasks") == true)
+            #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token-xyz")
+
+            let response = HTTPURLResponse(url: request.url!, statusCode: 201, httpVersion: nil, headerFields: nil)!
+            return (response, Data("{\"id\":\"task-42\"}".utf8))
+        }
+
+        let client = TodoClient(getAccessToken: { "token-xyz" }, session: session)
+        let taskId = try await client.createTask(listId: "list-1", title: "Hello", bodyText: "Body")
+        #expect(taskId == "task-42")
+    }
+
+    @Test("TodoClient maps HTTP errors")
+    func fetchTodoListsHttpError() async {
+        defer { MockURLProtocol.clearHandler() }
+
+        let session = makeMockSession { request in
+            let response = HTTPURLResponse(url: request.url!, statusCode: 500, httpVersion: nil, headerFields: nil)!
+            return (response, Data())
+        }
+
+        let client = TodoClient(getAccessToken: { "token" }, session: session)
+
+        do {
+            _ = try await client.fetchTodoLists()
+            Issue.record("Expected httpError")
+        } catch let error as TodoClientError {
+            switch error {
+            case .httpError(let code):
+                #expect(code == 500)
+            default:
+                Issue.record("Expected httpError, got \(error)")
+            }
+        } catch {
+            Issue.record("Unexpected error type: \(error)")
+        }
+    }
+
+    @Test("OpenRouter rewrite success path")
+    func openRouterRewriteSuccess() async throws {
+        defer { MockURLProtocol.clearHandler() }
+
+        let session = makeMockSession { request in
+            #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer sk-test")
+            #expect(request.value(forHTTPHeaderField: "X-Title") == "SpeakSmooth")
+
+            let payload = """
+            {
+              "choices": [{
+                "message": {
+                  "content": "{\\\"revised\\\":\\\"I should have gone.\\\",\\\"alternatives\\\":[],\\\"corrections\\\":[\\\"verb form\\\"]}"
+                }
+              }]
+            }
+            """
+            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+            return (response, Data(payload.utf8))
+        }
+
+        let rewriter = OpenRouterRewriter(apiKey: "sk-test", session: session)
+        let result = try await rewriter.rewrite("I should went.")
+        #expect(result.revised == "I should have gone.")
+        #expect(result.corrections == ["verb form"])
+    }
+
+    @Test("OpenRouter rewrite maps HTTP errors")
+    func openRouterRewriteHttpError() async {
+        defer { MockURLProtocol.clearHandler() }
+
+        let session = makeMockSession { request in
+            let response = HTTPURLResponse(url: request.url!, statusCode: 503, httpVersion: nil, headerFields: nil)!
+            return (response, Data())
+        }
+
+        let rewriter = OpenRouterRewriter(apiKey: "sk-test", session: session)
+
+        do {
+            _ = try await rewriter.rewrite("text")
+            Issue.record("Expected RewriteError.networkError")
+        } catch let error as RewriteError {
+            switch error {
+            case .networkError:
+                #expect(true)
+            default:
+                Issue.record("Expected networkError, got \(error)")
+            }
+        } catch {
+            Issue.record("Unexpected error type: \(error)")
+        }
+    }
+
+    @MainActor
+    @Test("Coordinator start/stop covers mic-denied path")
+    func coordinatorStartStop() {
+        let appState = AppState()
+        let settings = AppSettings()
+        let authManager = AuthManager()
+        let coordinator = PipelineCoordinator(appState: appState, settings: settings, authManager: authManager)
+
+        coordinator.startRecording()
+        if case .error = appState.pipelineState {
+            #expect(true)
+        } else {
+            Issue.record("Expected error state after failed start")
+        }
+
+        coordinator.stopRecording()
+        #expect(appState.pipelineState == .idle)
+    }
+
+    @Test("TranscriptionService throws when model not loaded")
+    func transcriptionModelNotLoaded() async {
+        let service = TranscriptionService()
+        let segment = AudioSegment(pcmFloats: [0.1, 0.2], durationSeconds: 0.01)
+
+        do {
+            _ = try await service.transcribe(segment)
+            Issue.record("Expected modelNotLoaded")
+        } catch let error as TranscriptionError {
+            switch error {
+            case .modelNotLoaded:
+                #expect(true)
+            default:
+                Issue.record("Expected modelNotLoaded, got \(error)")
+            }
+        } catch {
+            Issue.record("Unexpected error type: \(error)")
+        }
+    }
+
+    @MainActor
+    @Test("SwiftUI views render under key branches")
+    func viewsRender() {
+        let appState = AppState()
+        let settings = AppSettings()
+        settings.selectedTodoListName = "English Practice"
+        let authManager = AuthManager()
+        authManager.setAuthStateForTesting(isSignedIn: true, accountName: "test@example.com")
+
+        appState.pipelineState = .speaking
+        appState.lastSavedTask = SavedTask(
+            graphTaskId: "task-1",
+            title: "I should have gone.",
+            body: "Corrections: verb form",
+            savedAt: .now
+        )
+
+        let coordinator = PipelineCoordinator(appState: appState, settings: settings, authManager: authManager)
+
+        let popover = MenuBarPopover(coordinator: coordinator)
+            .environment(appState)
+            .environment(settings)
+            .environment(authManager)
+        let popoverHost = NSHostingView(rootView: popover)
+        popoverHost.layoutSubtreeIfNeeded()
+        _ = popoverHost.fittingSize
+
+        let settingsView = SettingsView()
+            .environment(settings)
+            .environment(authManager)
+        let settingsHost = NSHostingView(rootView: settingsView)
+        settingsHost.layoutSubtreeIfNeeded()
+        _ = settingsHost.fittingSize
+
+        let indicatorHost = NSHostingView(rootView: StatusIndicator(state: .rewriting))
+        indicatorHost.layoutSubtreeIfNeeded()
+        _ = indicatorHost.fittingSize
+
+        let cardHost = NSHostingView(rootView: TaskPreviewCard(task: appState.lastSavedTask!))
+        cardHost.layoutSubtreeIfNeeded()
+        _ = cardHost.fittingSize
+    }
+
+    @Test("Error descriptions remain stable")
+    func errorDescriptions() {
+        #expect(RewriteError.unavailable.errorDescription == "Rewrite service unavailable")
+        #expect(RewriteError.invalidResponse.errorDescription == "Could not parse rewrite response")
+        #expect(AuthError.notConfigured.errorDescription == "MSAL not configured (set MSALClientId in Info.plist)")
+        #expect(AuthError.notSignedIn.errorDescription == "Not signed in to Microsoft")
+        #expect(TodoClientError.invalidResponse.errorDescription == "Invalid response from Graph API")
+        #expect(AudioCaptureError.micPermissionDenied.errorDescription == "Microphone permission denied")
+        #expect(TranscriptionError.emptyTranscript.errorDescription == "No speech detected in segment")
+        #expect(PipelineState.error("x").isError)
+        #expect(!PipelineState.idle.isError)
+    }
+}

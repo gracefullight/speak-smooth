@@ -90,6 +90,26 @@ struct SettingsView: View {
                     }
             }
 
+            Divider()
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Sponsors")
+                    .font(.headline)
+                Text("If this project helped you, please consider buying me a coffee!")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Link("Buy Me A Coffee", destination: URL(string: "https://www.buymeacoffee.com/gracefullight")!)
+                Link("GitHub Repository", destination: URL(string: "https://github.com/gracefullight/speak-smooth")!)
+
+                Text("Or leave a star:")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text("gh api --method PUT /user/starred/gracefullight/pkgs")
+                    .font(.caption.monospaced())
+                    .textSelection(.enabled)
+            }
+
             Spacer()
 
             HStack {

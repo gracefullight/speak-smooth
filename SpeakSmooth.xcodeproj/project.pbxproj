@@ -1,0 +1,571 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		12B4B4FE222A4CC435AE571C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2EB76F4DBF6B66B4C2D07A5 /* SettingsView.swift */; };
+		145A8BCAE82B468F5798FEB3 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 66CADE256F01CED6F5D1D64F /* WhisperKit */; };
+		213C6161FC1E49DE7791813F /* RewriteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0A1B4943D4809801652084E /* RewriteService.swift */; };
+		23A189A8ADF32E55E791FB15 /* AppleRewriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0BA36A62753DA9572E9640D /* AppleRewriter.swift */; };
+		2A96FC3A86E2C626575B0636 /* OpenRouterRewriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77DDB5770F053964E011CA26 /* OpenRouterRewriter.swift */; };
+		421E9199522BA03B9EEFD886 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 56E95B44754E17AD46CC6181 /* AuthManager.swift */; };
+		443BFFC773AD677472ED3A61 /* AudioCaptureManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 210D0BAE72135D8CD57C858D /* AudioCaptureManager.swift */; };
+		529E44D61BEE333AC3EC4A20 /* SpeakSmoothTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 141C42A1E3FF77600C119CB9 /* SpeakSmoothTests.swift */; };
+		630061D1C7D909C26447A59D /* TranscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F68ADB28D79EFE46883FB85B /* TranscriptionService.swift */; };
+		70EDBAC93F9BEBE7FC4CBDD4 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD08D8642B943CE4C38256ED /* Settings.swift */; };
+		71BE217D3ACD556E4D68DCF8 /* SpeakSmoothApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653A12611B71E5CCC3E59F3D /* SpeakSmoothApp.swift */; };
+		7986A178A119527B4921F7E2 /* TaskPreviewCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 828E0D53F196682B4891103D /* TaskPreviewCard.swift */; };
+		C170C79EF5984DCCA9C27559 /* MSAL in Frameworks */ = {isa = PBXBuildFile; productRef = FDB0EC9EA56548E3658D21CA /* MSAL */; };
+		CCE164506B32ECB131E7FFF5 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 878A1E8D9BCCBCA375455071 /* AppState.swift */; };
+		D69C445F8BAF3806718E3B8F /* StatusIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1D92960F30A8E645569132D /* StatusIndicator.swift */; };
+		D733AE445D0FCCE69A03B4F3 /* RealTimeCutVADLibrary in Frameworks */ = {isa = PBXBuildFile; productRef = 42E86C96CBC252B90FC57159 /* RealTimeCutVADLibrary */; };
+		F21DEB3317E86CC40399D266 /* SegmentBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB54DA2DEAE391EEE6B94FEB /* SegmentBuilder.swift */; };
+		FDBB97985FBB2740A19C60F7 /* TodoClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBBD2824A88306F6D54AA31F /* TodoClient.swift */; };
+		FDF496906317158FE92E5797 /* MenuBarPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82DFC538BF262A9C43B3EBFF /* MenuBarPopover.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		B25C5A248E13AFABA0659B61 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1C7E011F55A65C4B17281655 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = C2DF0692EDB1297DA14EB7B6;
+			remoteInfo = SpeakSmooth;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		141C42A1E3FF77600C119CB9 /* SpeakSmoothTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakSmoothTests.swift; sourceTree = "<group>"; };
+		210D0BAE72135D8CD57C858D /* AudioCaptureManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioCaptureManager.swift; sourceTree = "<group>"; };
+		397AB65A980D33449B36C22A /* SpeakSmoothTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SpeakSmoothTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5091EAA659DFE2CE307AECC2 /* SpeakSmooth.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SpeakSmooth.entitlements; sourceTree = "<group>"; };
+		56E95B44754E17AD46CC6181 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		653A12611B71E5CCC3E59F3D /* SpeakSmoothApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeakSmoothApp.swift; sourceTree = "<group>"; };
+		7056C7AA037073C6F03DA68D /* SpeakSmooth.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SpeakSmooth.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		77DDB5770F053964E011CA26 /* OpenRouterRewriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenRouterRewriter.swift; sourceTree = "<group>"; };
+		828E0D53F196682B4891103D /* TaskPreviewCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskPreviewCard.swift; sourceTree = "<group>"; };
+		82DFC538BF262A9C43B3EBFF /* MenuBarPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopover.swift; sourceTree = "<group>"; };
+		878A1E8D9BCCBCA375455071 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		A0A1B4943D4809801652084E /* RewriteService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewriteService.swift; sourceTree = "<group>"; };
+		C1D92960F30A8E645569132D /* StatusIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatusIndicator.swift; sourceTree = "<group>"; };
+		C2EB76F4DBF6B66B4C2D07A5 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		CBBD2824A88306F6D54AA31F /* TodoClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoClient.swift; sourceTree = "<group>"; };
+		F0BA36A62753DA9572E9640D /* AppleRewriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleRewriter.swift; sourceTree = "<group>"; };
+		F68ADB28D79EFE46883FB85B /* TranscriptionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TranscriptionService.swift; sourceTree = "<group>"; };
+		FB54DA2DEAE391EEE6B94FEB /* SegmentBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SegmentBuilder.swift; sourceTree = "<group>"; };
+		FD08D8642B943CE4C38256ED /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		D905F34DA83DEFA3008D1E1A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				145A8BCAE82B468F5798FEB3 /* WhisperKit in Frameworks */,
+				D733AE445D0FCCE69A03B4F3 /* RealTimeCutVADLibrary in Frameworks */,
+				C170C79EF5984DCCA9C27559 /* MSAL in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1279CFB716C8FEB8994AAADA /* STT */ = {
+			isa = PBXGroup;
+			children = (
+				F68ADB28D79EFE46883FB85B /* TranscriptionService.swift */,
+			);
+			path = STT;
+			sourceTree = "<group>";
+		};
+		1DE400317A1C6F4FBDB99192 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				5091EAA659DFE2CE307AECC2 /* SpeakSmooth.entitlements */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		439EAEC8791C42CF3FD632E8 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				C646EA231E7D2344E3C6A996 /* Components */,
+				82DFC538BF262A9C43B3EBFF /* MenuBarPopover.swift */,
+				C2EB76F4DBF6B66B4C2D07A5 /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		4D8BD43C62F91D814CD49622 /* SpeakSmoothTests */ = {
+			isa = PBXGroup;
+			children = (
+				141C42A1E3FF77600C119CB9 /* SpeakSmoothTests.swift */,
+			);
+			path = SpeakSmoothTests;
+			sourceTree = "<group>";
+		};
+		708592F2DB7CA0A41E77C56E /* SpeakSmooth */ = {
+			isa = PBXGroup;
+			children = (
+				B65CEBFBAF5E8B2B4FB99428 /* Audio */,
+				DEA49896A207114FD80B1F7E /* Graph */,
+				FFC773D31613DC4C4A473A86 /* Models */,
+				1DE400317A1C6F4FBDB99192 /* Resources */,
+				96480BB1E5DF83FEDC7FF418 /* Rewrite */,
+				1279CFB716C8FEB8994AAADA /* STT */,
+				439EAEC8791C42CF3FD632E8 /* Views */,
+				653A12611B71E5CCC3E59F3D /* SpeakSmoothApp.swift */,
+			);
+			path = SpeakSmooth;
+			sourceTree = "<group>";
+		};
+		90BC8D8E3B19C092F9F98DA0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7056C7AA037073C6F03DA68D /* SpeakSmooth.app */,
+				397AB65A980D33449B36C22A /* SpeakSmoothTests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		96480BB1E5DF83FEDC7FF418 /* Rewrite */ = {
+			isa = PBXGroup;
+			children = (
+				F0BA36A62753DA9572E9640D /* AppleRewriter.swift */,
+				77DDB5770F053964E011CA26 /* OpenRouterRewriter.swift */,
+				A0A1B4943D4809801652084E /* RewriteService.swift */,
+			);
+			path = Rewrite;
+			sourceTree = "<group>";
+		};
+		B65CEBFBAF5E8B2B4FB99428 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				210D0BAE72135D8CD57C858D /* AudioCaptureManager.swift */,
+				FB54DA2DEAE391EEE6B94FEB /* SegmentBuilder.swift */,
+			);
+			path = Audio;
+			sourceTree = "<group>";
+		};
+		C646EA231E7D2344E3C6A996 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				C1D92960F30A8E645569132D /* StatusIndicator.swift */,
+				828E0D53F196682B4891103D /* TaskPreviewCard.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
+		D00B74461336E21E320B2361 = {
+			isa = PBXGroup;
+			children = (
+				708592F2DB7CA0A41E77C56E /* SpeakSmooth */,
+				4D8BD43C62F91D814CD49622 /* SpeakSmoothTests */,
+				90BC8D8E3B19C092F9F98DA0 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		DEA49896A207114FD80B1F7E /* Graph */ = {
+			isa = PBXGroup;
+			children = (
+				56E95B44754E17AD46CC6181 /* AuthManager.swift */,
+				CBBD2824A88306F6D54AA31F /* TodoClient.swift */,
+			);
+			path = Graph;
+			sourceTree = "<group>";
+		};
+		FFC773D31613DC4C4A473A86 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				878A1E8D9BCCBCA375455071 /* AppState.swift */,
+				FD08D8642B943CE4C38256ED /* Settings.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		2F490C6FC99EE0DFEE39E778 /* SpeakSmoothTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7225DA54B37149C46C21F3AD /* Build configuration list for PBXNativeTarget "SpeakSmoothTests" */;
+			buildPhases = (
+				42C35288B92E99A6C93E4F02 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				D0B55917B3FDE185848DE4E5 /* PBXTargetDependency */,
+			);
+			name = SpeakSmoothTests;
+			packageProductDependencies = (
+			);
+			productName = SpeakSmoothTests;
+			productReference = 397AB65A980D33449B36C22A /* SpeakSmoothTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		C2DF0692EDB1297DA14EB7B6 /* SpeakSmooth */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 329381DB8212B42C2DB117F6 /* Build configuration list for PBXNativeTarget "SpeakSmooth" */;
+			buildPhases = (
+				C59D7A312565BA9B01A6C511 /* Sources */,
+				D905F34DA83DEFA3008D1E1A /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SpeakSmooth;
+			packageProductDependencies = (
+				66CADE256F01CED6F5D1D64F /* WhisperKit */,
+				42E86C96CBC252B90FC57159 /* RealTimeCutVADLibrary */,
+				FDB0EC9EA56548E3658D21CA /* MSAL */,
+			);
+			productName = SpeakSmooth;
+			productReference = 7056C7AA037073C6F03DA68D /* SpeakSmooth.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1C7E011F55A65C4B17281655 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+			};
+			buildConfigurationList = 1EFC2CD3FA46A3F605F0FFA0 /* Build configuration list for PBXProject "SpeakSmooth" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = D00B74461336E21E320B2361;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				CF04CF897AD0159929CC0902 /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */,
+				9BBF94B2BB74933BD2F4579A /* XCRemoteSwiftPackageReference "RealTimeCutVADLibrary" */,
+				E13BFA7F9B992CD38FAA3FD0 /* XCRemoteSwiftPackageReference "WhisperKit" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				C2DF0692EDB1297DA14EB7B6 /* SpeakSmooth */,
+				2F490C6FC99EE0DFEE39E778 /* SpeakSmoothTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		42C35288B92E99A6C93E4F02 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				529E44D61BEE333AC3EC4A20 /* SpeakSmoothTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		C59D7A312565BA9B01A6C511 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CCE164506B32ECB131E7FFF5 /* AppState.swift in Sources */,
+				23A189A8ADF32E55E791FB15 /* AppleRewriter.swift in Sources */,
+				443BFFC773AD677472ED3A61 /* AudioCaptureManager.swift in Sources */,
+				421E9199522BA03B9EEFD886 /* AuthManager.swift in Sources */,
+				FDF496906317158FE92E5797 /* MenuBarPopover.swift in Sources */,
+				2A96FC3A86E2C626575B0636 /* OpenRouterRewriter.swift in Sources */,
+				213C6161FC1E49DE7791813F /* RewriteService.swift in Sources */,
+				F21DEB3317E86CC40399D266 /* SegmentBuilder.swift in Sources */,
+				70EDBAC93F9BEBE7FC4CBDD4 /* Settings.swift in Sources */,
+				12B4B4FE222A4CC435AE571C /* SettingsView.swift in Sources */,
+				71BE217D3ACD556E4D68DCF8 /* SpeakSmoothApp.swift in Sources */,
+				D69C445F8BAF3806718E3B8F /* StatusIndicator.swift in Sources */,
+				7986A178A119527B4921F7E2 /* TaskPreviewCard.swift in Sources */,
+				FDBB97985FBB2740A19C60F7 /* TodoClient.swift in Sources */,
+				630061D1C7D909C26447A59D /* TranscriptionService.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		D0B55917B3FDE185848DE4E5 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = C2DF0692EDB1297DA14EB7B6 /* SpeakSmooth */;
+			targetProxy = B25C5A248E13AFABA0659B61 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		6B7235E09A6350743A87C421 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = SpeakSmooth/Resources/SpeakSmooth.entitlements;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.speaksmooth.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		92FF1271CA7ABDD537D13CFE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SpeakSmooth.app/Contents/MacOS/SpeakSmooth";
+			};
+			name = Debug;
+		};
+		AA0416B135128F34186D3C1B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				SDKROOT = macosx;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/SpeakSmooth.app/Contents/MacOS/SpeakSmooth";
+			};
+			name = Release;
+		};
+		B38B173210B8478A2534C6D2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SpeakSmooth/Resources/SpeakSmooth.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = SpeakSmooth/Resources/Info.plist;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		E262BE6A4316ED3E1EC5EF89 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = SpeakSmooth/Resources/SpeakSmooth.entitlements;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.speaksmooth.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		EBF2660E0DC23763161160B0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = SpeakSmooth/Resources/SpeakSmooth.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = SpeakSmooth/Resources/Info.plist;
+				INFOPLIST_KEY_LSUIElement = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1EFC2CD3FA46A3F605F0FFA0 /* Build configuration list for PBXProject "SpeakSmooth" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				6B7235E09A6350743A87C421 /* Debug */,
+				E262BE6A4316ED3E1EC5EF89 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		329381DB8212B42C2DB117F6 /* Build configuration list for PBXNativeTarget "SpeakSmooth" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EBF2660E0DC23763161160B0 /* Debug */,
+				B38B173210B8478A2534C6D2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7225DA54B37149C46C21F3AD /* Build configuration list for PBXNativeTarget "SpeakSmoothTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				92FF1271CA7ABDD537D13CFE /* Debug */,
+				AA0416B135128F34186D3C1B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9BBF94B2BB74933BD2F4579A /* XCRemoteSwiftPackageReference "RealTimeCutVADLibrary" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/helloooideeeeea/RealTimeCutVADLibrary.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.14;
+			};
+		};
+		CF04CF897AD0159929CC0902 /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AzureAD/microsoft-authentication-library-for-objc.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.6.1;
+			};
+		};
+		E13BFA7F9B992CD38FAA3FD0 /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/argmaxinc/WhisperKit.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.10.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		42E86C96CBC252B90FC57159 /* RealTimeCutVADLibrary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9BBF94B2BB74933BD2F4579A /* XCRemoteSwiftPackageReference "RealTimeCutVADLibrary" */;
+			productName = RealTimeCutVADLibrary;
+		};
+		66CADE256F01CED6F5D1D64F /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E13BFA7F9B992CD38FAA3FD0 /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
+		};
+		FDB0EC9EA56548E3658D21CA /* MSAL */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = CF04CF897AD0159929CC0902 /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */;
+			productName = MSAL;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 1C7E011F55A65C4B17281655 /* Project object */;
+}

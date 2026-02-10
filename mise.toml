@@ -1,0 +1,35 @@
+[env]
+PROJECT = "SpeakSmooth.xcodeproj"
+SCHEME = "SpeakSmooth"
+DESTINATION = "platform=macOS"
+
+[tasks.dev]
+description = "Build the app in Debug"
+alias = "d"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Debug build
+'''
+
+[tasks.test]
+description = "Run unit tests"
+alias = "t"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+xcodebuild test -project "$PROJECT" -scheme "$SCHEME" -destination "$DESTINATION"
+'''
+
+[tasks.lint]
+description = "Run SwiftLint when available, else compile-check"
+alias = "l"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+if command -v swiftlint >/dev/null 2>&1; then
+  swiftlint
+else
+  xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Debug build -quiet
+fi
+'''

@@ -3,7 +3,7 @@ import SwiftUI
 struct MenuBarPopover: View {
     @Environment(AppState.self) private var appState
     @Environment(AppSettings.self) private var settings
-    @Environment(AuthManager.self) private var authManager
+    @Environment(RemindersManager.self) private var remindersManager
     @Environment(\.openWindow) private var openWindow
     var coordinator: PipelineCoordinator?
 
@@ -73,12 +73,12 @@ struct MenuBarPopover: View {
             Divider()
 
             HStack {
-                Image(systemName: authManager.isSignedIn ? "checkmark.circle.fill" : "xmark.circle")
-                    .foregroundStyle(authManager.isSignedIn ? .green : .secondary)
+                Image(systemName: remindersManager.isAuthorized ? "checkmark.circle.fill" : "xmark.circle")
+                    .foregroundStyle(remindersManager.isAuthorized ? .green : .secondary)
                 VStack(alignment: .leading) {
-                    Text(authManager.isSignedIn ? "Signed in" : "Not signed in")
+                    Text(remindersManager.isAuthorized ? "Reminders access enabled" : "Reminders access needed")
                         .font(.caption)
-                    if let listName = settings.selectedTodoListName {
+                    if let listName = settings.selectedReminderListName {
                         Text("List: \(listName)")
                             .font(.caption2)
                             .foregroundStyle(.secondary)

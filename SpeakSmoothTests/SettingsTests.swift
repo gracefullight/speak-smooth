@@ -7,6 +7,8 @@ struct SettingsTests {
     // Clean up UserDefaults before each test to avoid cross-test pollution
     private func cleanDefaults() {
         UserDefaults.standard.removeObject(forKey: "silenceTimeoutSeconds")
+        UserDefaults.standard.removeObject(forKey: "selectedReminderListId")
+        UserDefaults.standard.removeObject(forKey: "selectedReminderListName")
         UserDefaults.standard.removeObject(forKey: "selectedTodoListId")
         UserDefaults.standard.removeObject(forKey: "selectedTodoListName")
     }
@@ -18,12 +20,12 @@ struct SettingsTests {
         #expect(settings.silenceTimeoutSeconds == 3.0)
     }
 
-    @Test("Default todo list is nil")
-    func defaultTodoList() {
+    @Test("Default reminders list is nil")
+    func defaultReminderList() {
         cleanDefaults()
         let settings = AppSettings()
-        #expect(settings.selectedTodoListId == nil)
-        #expect(settings.selectedTodoListName == nil)
+        #expect(settings.selectedReminderListId == nil)
+        #expect(settings.selectedReminderListName == nil)
     }
 
     @Test("Silence timeout clamps to valid range")

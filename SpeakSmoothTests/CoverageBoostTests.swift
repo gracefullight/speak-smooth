@@ -1,4 +1,5 @@
 import AppKit
+import EventKit
 import Foundation
 import SwiftUI
 import Testing
@@ -60,69 +61,6 @@ struct CoverageBoostTests {
         return URLSession(configuration: config)
     }
 
-    @Test("TodoClient fetchTodoLists success path")
-    func fetchTodoListsSuccess() async throws {
-        defer { MockURLProtocol.clearHandler() }
-
-        let session = makeMockSession { request in
-            #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token-123")
-            let payload = """
-            {"value":[{"id":"a","displayName":"Inbox"},{"id":"b","displayName":"English"}]}
-            """
-            let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-            return (response, Data(payload.utf8))
-        }
-
-        let client = TodoClient(getAccessToken: { "token-123" }, session: session)
-        let lists = try await client.fetchTodoLists()
-        #expect(lists.count == 2)
-        #expect(lists[0].displayName == "Inbox")
-    }
-
-    @Test("TodoClient createTask success path")
-    func createTaskSuccess() async throws {
-        defer { MockURLProtocol.clearHandler() }
-
-        let session = makeMockSession { request in
-            #expect(request.httpMethod == "POST")
-            #expect(request.url?.absoluteString.contains("/tasks") == true)
-            #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer token-xyz")
-
-            let response = HTTPURLResponse(url: request.url!, statusCode: 201, httpVersion: nil, headerFields: nil)!
-            return (response, Data("{\"id\":\"task-42\"}".utf8))
-        }
-
-        let client = TodoClient(getAccessToken: { "token-xyz" }, session: session)
-        let taskId = try await client.createTask(listId: "list-1", title: "Hello", bodyText: "Body")
-        #expect(taskId == "task-42")
-    }
-
-    @Test("TodoClient maps HTTP errors")
-    func fetchTodoListsHttpError() async {
-        defer { MockURLProtocol.clearHandler() }
-
-        let session = makeMockSession { request in
-            let response = HTTPURLResponse(url: request.url!, statusCode: 500, httpVersion: nil, headerFields: nil)!
-            return (response, Data())
-        }
-
-        let client = TodoClient(getAccessToken: { "token" }, session: session)
-
-        do {
-            _ = try await client.fetchTodoLists()
-            Issue.record("Expected httpError")
-        } catch let error as TodoClientError {
-            switch error {
-            case .httpError(let code):
-                #expect(code == 500)
-            default:
-                Issue.record("Expected httpError, got \(error)")
-            }
-        } catch {
-            Issue.record("Unexpected error type: \(error)")
-        }
-    }
-
     @Test("OpenRouter rewrite success path")
     func openRouterRewriteSuccess() async throws {
         defer { MockURLProtocol.clearHandler() }
@@ -181,8 +119,8 @@ struct CoverageBoostTests {
     func coordinatorStartStop() {
         let appState = AppState()
         let settings = AppSettings()
-        let authManager = AuthManager()
-        let coordinator = PipelineCoordinator(appState: appState, settings: settings, authManager: authManager)
+        let remindersManager = RemindersManager()
+        let coordinator = PipelineCoordinator(appState: appState, settings: settings, remindersManager: remindersManager)
 
         coordinator.startRecording()
         if case .error = appState.pipelineState {
@@ -220,31 +158,31 @@ struct CoverageBoostTests {
     func viewsRender() {
         let appState = AppState()
         let settings = AppSettings()
-        settings.selectedTodoListName = "English Practice"
-        let authManager = AuthManager()
-        authManager.setAuthStateForTesting(isSignedIn: true, accountName: "test@example.com")
+        settings.selectedReminderListName = "English Practice"
+        let remindersManager = RemindersManager()
+        remindersManager.setAuthorizationStatusForTesting(.authorized)
 
         appState.pipelineState = .speaking
         appState.lastSavedTask = SavedTask(
-            graphTaskId: "task-1",
+            reminderId: "reminder-1",
             title: "I should have gone.",
             body: "Corrections: verb form",
             savedAt: .now
         )
 
-        let coordinator = PipelineCoordinator(appState: appState, settings: settings, authManager: authManager)
+        let coordinator = PipelineCoordinator(appState: appState, settings: settings, remindersManager: remindersManager)
 
         let popover = MenuBarPopover(coordinator: coordinator)
             .environment(appState)
             .environment(settings)
-            .environment(authManager)
+            .environment(remindersManager)
         let popoverHost = NSHostingView(rootView: popover)
         popoverHost.layoutSubtreeIfNeeded()
         _ = popoverHost.fittingSize
 
         let settingsView = SettingsView()
             .environment(settings)
-            .environment(authManager)
+            .environment(remindersManager)
         let settingsHost = NSHostingView(rootView: settingsView)
         settingsHost.layoutSubtreeIfNeeded()
         _ = settingsHost.fittingSize
@@ -262,9 +200,8 @@ struct CoverageBoostTests {
     func errorDescriptions() {
         #expect(RewriteError.unavailable.errorDescription == "Rewrite service unavailable")
         #expect(RewriteError.invalidResponse.errorDescription == "Could not parse rewrite response")
-        #expect(AuthError.notConfigured.errorDescription == "MSAL not configured (set MSALClientId in Info.plist)")
-        #expect(AuthError.notSignedIn.errorDescription == "Not signed in to Microsoft")
-        #expect(TodoClientError.invalidResponse.errorDescription == "Invalid response from Graph API")
+        #expect(RemindersError.accessDenied.errorDescription == "Reminders access is not allowed")
+        #expect(RemindersError.listNotFound.errorDescription == "Selected Reminders list not found")
         #expect(AudioCaptureError.micPermissionDenied.errorDescription == "Microphone permission denied")
         #expect(TranscriptionError.emptyTranscript.errorDescription == "No speech detected in segment")
         #expect(PipelineState.error("x").isError)

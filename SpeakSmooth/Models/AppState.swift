@@ -12,7 +12,7 @@ enum PipelineState: Equatable {
 }
 
 struct SavedTask: Equatable {
-    let graphTaskId: String
+    let reminderId: String
     let title: String
     let body: String?
     let savedAt: Date
@@ -48,7 +48,7 @@ final class AppState {
         case .silenceCountdown: return "Waiting..."
         case .finalizingSTT: return "Transcribing..."
         case .rewriting: return "Rewriting..."
-        case .saving: return "Saving to To Do..."
+        case .saving: return "Saving to Reminders..."
         case .error(let msg): return msg
         }
     }

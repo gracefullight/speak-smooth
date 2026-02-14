@@ -4,8 +4,10 @@ import SwiftUI
 final class AppSettings {
     private enum Keys {
         static let silenceTimeout = "silenceTimeoutSeconds"
-        static let todoListId = "selectedTodoListId"
-        static let todoListName = "selectedTodoListName"
+        static let reminderListId = "selectedReminderListId"
+        static let reminderListName = "selectedReminderListName"
+        static let legacyTodoListId = "selectedTodoListId"
+        static let legacyTodoListName = "selectedTodoListName"
     }
 
     var silenceTimeoutSeconds: Double {
@@ -16,12 +18,16 @@ final class AppSettings {
         }
     }
 
-    var selectedTodoListId: String? {
-        didSet { UserDefaults.standard.set(selectedTodoListId, forKey: Keys.todoListId) }
+    var selectedReminderListId: String? {
+        didSet {
+            UserDefaults.standard.set(selectedReminderListId, forKey: Keys.reminderListId)
+        }
     }
 
-    var selectedTodoListName: String? {
-        didSet { UserDefaults.standard.set(selectedTodoListName, forKey: Keys.todoListName) }
+    var selectedReminderListName: String? {
+        didSet {
+            UserDefaults.standard.set(selectedReminderListName, forKey: Keys.reminderListName)
+        }
     }
 
     var openRouterApiKey: String?
@@ -29,7 +35,9 @@ final class AppSettings {
     init() {
         let stored = UserDefaults.standard.double(forKey: Keys.silenceTimeout)
         self.silenceTimeoutSeconds = stored > 0 ? min(max(stored, 1.0), 10.0) : 3.0
-        self.selectedTodoListId = UserDefaults.standard.string(forKey: Keys.todoListId)
-        self.selectedTodoListName = UserDefaults.standard.string(forKey: Keys.todoListName)
+        self.selectedReminderListId = UserDefaults.standard.string(forKey: Keys.reminderListId)
+            ?? UserDefaults.standard.string(forKey: Keys.legacyTodoListId)
+        self.selectedReminderListName = UserDefaults.standard.string(forKey: Keys.reminderListName)
+            ?? UserDefaults.standard.string(forKey: Keys.legacyTodoListName)
     }
 }

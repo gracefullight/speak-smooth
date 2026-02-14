@@ -22,7 +22,7 @@ cask "${CASK_NAME}" do
 
   url "${ASSET_URL}"
   name "SpeakSmooth"
-  desc "Menu bar app that rewrites speech and saves to Microsoft To Do"
+  desc "Menu bar app that rewrites speech and saves to Apple Reminders"
   homepage "https://github.com/${REPO}"
 
   app "SpeakSmooth.app"

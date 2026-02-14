@@ -25,9 +25,6 @@ packages:
   RealTimeCutVADLibrary:
     url: https://github.com/helloooideeeeea/RealTimeCutVADLibrary.git
     from: "1.0.14"
-  MSAL:
-    url: https://github.com/AzureAD/microsoft-authentication-library-for-objc.git
-    from: "1.6.1"
 
 targets:
   SpeakSmooth:
@@ -44,7 +41,6 @@ targets:
     dependencies:
       - package: WhisperKit
       - package: RealTimeCutVADLibrary
-      - package: MSAL
     settings:
       base:
         INFOPLIST_KEY_LSUIElement: true

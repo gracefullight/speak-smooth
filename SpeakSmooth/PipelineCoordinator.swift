@@ -4,22 +4,17 @@ import Foundation
 final class PipelineCoordinator {
     let appState: AppState
     let settings: AppSettings
-    let authManager: AuthManager
 
     private let audioCaptureManager = AudioCaptureManager()
     private var segmentBuilder: SegmentBuilder?
     private let transcriptionService = TranscriptionService()
-    private var todoClient: TodoClient?
+    private let remindersClient: RemindersClient
     private var rewriter: (any RewriteService)?
 
-    init(appState: AppState, settings: AppSettings, authManager: AuthManager) {
+    init(appState: AppState, settings: AppSettings, remindersManager: RemindersManager) {
         self.appState = appState
         self.settings = settings
-        self.authManager = authManager
-        self.todoClient = TodoClient { [weak authManager] in
-            guard let authManager else { throw AuthError.notSignedIn }
-            return try await authManager.getAccessToken()
-        }
+        self.remindersClient = RemindersClient(remindersManager: remindersManager)
         setupRewriter()
     }
 
@@ -129,30 +124,24 @@ final class PipelineCoordinator {
         }
 
         appState.transitionTo(.saving)
-        guard let listId = settings.selectedTodoListId else {
-            appState.handleError("No To Do list selected")
-            appState.transitionTo(.listening)
-            return
-        }
-
-        guard let todoClient else {
-            appState.handleError("To Do client unavailable")
+        guard let listId = settings.selectedReminderListId else {
+            appState.handleError("No Reminders list selected")
             appState.transitionTo(.listening)
             return
         }
 
         do {
-            let bodyText = rewriteResult.formatTaskBody(original: transcript.originalTranscript)
-            let taskId = try await todoClient.createTask(
+            let notes = rewriteResult.formatTaskBody(original: transcript.originalTranscript)
+            let reminderId = try remindersClient.createReminder(
                 listId: listId,
                 title: rewriteResult.revised,
-                bodyText: bodyText
+                notes: notes
             )
 
             appState.lastSavedTask = SavedTask(
-                graphTaskId: taskId,
+                reminderId: reminderId,
                 title: rewriteResult.revised,
-                body: bodyText,
+                body: notes,
                 savedAt: Date()
             )
         } catch {

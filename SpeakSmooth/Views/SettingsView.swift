@@ -2,12 +2,13 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(AppSettings.self) private var settings
-    @Environment(AuthManager.self) private var authManager
+    @Environment(RemindersManager.self) private var remindersManager
     @Environment(\.dismiss) private var dismiss
 
-    @State private var todoLists: [TodoList] = []
+    @State private var reminderLists: [ReminderList] = []
     @State private var isLoadingLists = false
     @State private var apiKeyInput = ""
+    @State private var remindersErrorMessage: String?
 
     var body: some View {
         @Bindable var settings = settings
@@ -31,30 +32,37 @@ struct SettingsView: View {
                 Divider()
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Microsoft Account")
+                    Text("Apple Reminders")
                         .font(.headline)
 
-                    if authManager.isSignedIn {
+                    if remindersManager.isAuthorized {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(.green)
-                            Text(authManager.accountName ?? "Signed in")
+                            Text("Access enabled")
                             Spacer()
-                            Button("Sign Out") {
-                                try? authManager.signOut()
+                            Button("Refresh Lists") {
+                                Task { await loadLists() }
                             }
                         }
                     } else {
-                        Button("Sign In with Microsoft") {
-                            Task { try? await authManager.signIn() }
+                        Button("Enable Reminders Access") {
+                            Task { await requestRemindersAccess() }
                         }
+                    }
+
+                    if let remindersErrorMessage, !remindersErrorMessage.isEmpty {
+                        Text(remindersErrorMessage)
+                            .font(.caption)
+                            .foregroundStyle(.red)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
 
-                if authManager.isSignedIn {
+                if remindersManager.isAuthorized {
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text("To Do List")
+                            Text("Reminders List")
                                 .font(.headline)
                             Spacer()
                             if isLoadingLists {
@@ -63,15 +71,15 @@ struct SettingsView: View {
                             }
                         }
 
-                        Picker("List", selection: $settings.selectedTodoListId) {
+                        Picker("List", selection: $settings.selectedReminderListId) {
                             Text("Select a list").tag(String?.none)
-                            ForEach(todoLists) { list in
+                            ForEach(reminderLists) { list in
                                 Text(list.displayName).tag(Optional(list.id))
                             }
                         }
                         .labelsHidden()
-                        .onChange(of: settings.selectedTodoListId) { _, newValue in
-                            settings.selectedTodoListName = todoLists.first { $0.id == newValue }?.displayName
+                        .onChange(of: settings.selectedReminderListId) { _, newValue in
+                            settings.selectedReminderListName = reminderLists.first { $0.id == newValue }?.displayName
                         }
                     }
                 }
@@ -127,20 +135,39 @@ struct SettingsView: View {
         .frame(minWidth: 460, idealWidth: 500, minHeight: 580, idealHeight: 640)
         .task {
             apiKeyInput = settings.openRouterApiKey ?? ""
-            if authManager.isSignedIn {
+            remindersManager.refreshAuthorizationStatus()
+            if remindersManager.isAuthorized {
                 await loadLists()
             }
+        }
+    }
+
+    private func requestRemindersAccess() async {
+        do {
+            try await remindersManager.requestAccess()
+            remindersErrorMessage = nil
+            await loadLists()
+        } catch {
+            remindersErrorMessage = error.localizedDescription
         }
     }
 
     private func loadLists() async {
         isLoadingLists = true
         defer { isLoadingLists = false }
-        let client = TodoClient { try await authManager.getAccessToken() }
+
         do {
-            todoLists = try await client.fetchTodoLists()
+            reminderLists = try remindersManager.fetchReminderLists()
+            remindersErrorMessage = nil
+            if
+                let selectedId = settings.selectedReminderListId,
+                !reminderLists.contains(where: { $0.id == selectedId })
+            {
+                settings.selectedReminderListId = nil
+                settings.selectedReminderListName = nil
+            }
         } catch {
-            print("Failed to load lists: \(error)")
+            remindersErrorMessage = error.localizedDescription
         }
     }
 }

@@ -4,21 +4,21 @@ import SwiftUI
 struct SpeakSmoothApp: App {
     @State private var appState: AppState
     @State private var settings: AppSettings
-    @State private var authManager: AuthManager
+    @State private var remindersManager: RemindersManager
     @State private var coordinator: PipelineCoordinator
 
     init() {
         let appState = AppState()
         let settings = AppSettings()
-        let authManager = AuthManager()
+        let remindersManager = RemindersManager()
         let coordinator = PipelineCoordinator(
             appState: appState,
             settings: settings,
-            authManager: authManager
+            remindersManager: remindersManager
         )
         _appState = State(initialValue: appState)
         _settings = State(initialValue: settings)
-        _authManager = State(initialValue: authManager)
+        _remindersManager = State(initialValue: remindersManager)
         _coordinator = State(initialValue: coordinator)
         Task { await coordinator.loadSTTModel() }
     }
@@ -28,7 +28,7 @@ struct SpeakSmoothApp: App {
             MenuBarPopover(coordinator: coordinator)
                 .environment(appState)
                 .environment(settings)
-                .environment(authManager)
+                .environment(remindersManager)
         } label: {
             Image(systemName: appState.menuBarIconName)
         }
@@ -37,7 +37,7 @@ struct SpeakSmoothApp: App {
         WindowGroup("Settings", id: "settings") {
             SettingsView()
                 .environment(settings)
-                .environment(authManager)
+                .environment(remindersManager)
         }
     }
 }

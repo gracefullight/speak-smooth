@@ -1,6 +1,6 @@
 # SpeakSmooth
 
-SpeakSmooth is a macOS menu bar app that captures your speech, improves grammar/naturalness, and saves the final sentence to Microsoft To Do.
+SpeakSmooth is a macOS menu bar app that captures your speech, improves grammar/naturalness, and saves the final sentence to Apple Reminders.
 
 ## Installation
 
@@ -29,7 +29,7 @@ brew upgrade --cask speak-smooth
 - Detects speech segments with Silero VAD (`RealTimeCutVADLibrary`)
 - Transcribes locally with WhisperKit (`openai/whisper-base.en`)
 - Rewrites text using Apple Foundation Models (primary) or OpenRouter (fallback)
-- Saves the revised sentence + corrections to Microsoft To Do via Graph API
+- Saves the revised sentence + corrections to an Apple Reminders list
 
 ## Requirements
 
@@ -48,8 +48,7 @@ xcodegen generate
 
 2. Configure app secrets/settings:
 
-- Set `MSALClientId` in `SpeakSmooth/Resources/Info.plist`
-- Keep redirect URI as `msauth.com.speaksmooth.app://auth` in Azure app config
+- Grant Reminders permission when prompted by the app
 - (Optional) Add OpenRouter API key in app Settings UI for rewrite fallback
 
 3. Build and test:

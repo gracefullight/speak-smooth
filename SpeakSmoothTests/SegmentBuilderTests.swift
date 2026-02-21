@@ -19,4 +19,24 @@ struct SegmentBuilderTests {
         let frames = SegmentBuilder.vadFrameCount(forSeconds: 3.0)
         #expect(frames == 94)
     }
+
+    @Test("Flushes pending segment on manual stop")
+    func flushPendingSegment() {
+        let builder = SegmentBuilder(sampleRate: .SAMPLERATE_48, silenceTimeoutSeconds: 3.0)
+        let pcm: [Float] = [0.1, 0.2, 0.3, 0.4]
+        let pcmData = pcm.withUnsafeBufferPointer { Data(buffer: $0) }
+
+        var emittedSegment: AudioSegment?
+        builder.onSegmentReady = { segment in
+            emittedSegment = segment
+        }
+
+        builder.voiceStarted()
+        builder.voiceDidContinue(withPCMFloat: pcmData)
+        let emitted = builder.flushPendingSegment()
+
+        #expect(emitted)
+        #expect(emittedSegment != nil)
+        #expect(emittedSegment?.pcmFloats.count == pcm.count)
+    }
 }

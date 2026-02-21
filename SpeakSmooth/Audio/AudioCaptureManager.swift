@@ -1,4 +1,5 @@
 import AVFoundation
+import AppKit
 
 final class AudioCaptureManager: @unchecked Sendable {
     private var audioEngine: AVAudioEngine?
@@ -17,6 +18,13 @@ final class AudioCaptureManager: @unchecked Sendable {
 
     static var isMicAuthorized: Bool {
         AVCaptureDevice.authorizationStatus(for: .audio) == .authorized
+    }
+
+    static func openMicrophonePrivacySettings() {
+        guard let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Microphone") else {
+            return
+        }
+        NSWorkspace.shared.open(url)
     }
 
     func start() throws {

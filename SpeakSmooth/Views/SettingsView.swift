@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct SettingsView: View {
     @Environment(AppSettings.self) private var settings
@@ -9,6 +10,7 @@ struct SettingsView: View {
     @State private var isLoadingLists = false
     @State private var apiKeyInput = ""
     @State private var remindersErrorMessage: String?
+    @State private var showOpenPrivacySettingsButton = false
 
     var body: some View {
         @Bindable var settings = settings
@@ -56,6 +58,13 @@ struct SettingsView: View {
                             .font(.caption)
                             .foregroundStyle(.red)
                             .fixedSize(horizontal: false, vertical: true)
+
+                        if showOpenPrivacySettingsButton {
+                            Button("Open Privacy Settings") {
+                                remindersManager.openRemindersPrivacySettings()
+                            }
+                            .font(.caption)
+                        }
                     }
                 }
 
@@ -133,6 +142,9 @@ struct SettingsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(minWidth: 460, idealWidth: 500, minHeight: 580, idealHeight: 640)
+        .onAppear {
+            bringWindowToFront()
+        }
         .task {
             apiKeyInput = settings.openRouterApiKey ?? ""
             remindersManager.refreshAuthorizationStatus()
@@ -146,9 +158,15 @@ struct SettingsView: View {
         do {
             try await remindersManager.requestAccess()
             remindersErrorMessage = nil
+            showOpenPrivacySettingsButton = false
             await loadLists()
         } catch {
             remindersErrorMessage = error.localizedDescription
+            if case .openSystemSettingsRequired = (error as? RemindersError) {
+                showOpenPrivacySettingsButton = true
+            } else {
+                showOpenPrivacySettingsButton = false
+            }
         }
     }
 
@@ -159,6 +177,7 @@ struct SettingsView: View {
         do {
             reminderLists = try remindersManager.fetchReminderLists()
             remindersErrorMessage = nil
+            showOpenPrivacySettingsButton = false
             if
                 let selectedId = settings.selectedReminderListId,
                 !reminderLists.contains(where: { $0.id == selectedId })
@@ -168,6 +187,21 @@ struct SettingsView: View {
             }
         } catch {
             remindersErrorMessage = error.localizedDescription
+            if case .openSystemSettingsRequired = (error as? RemindersError) {
+                showOpenPrivacySettingsButton = true
+            } else {
+                showOpenPrivacySettingsButton = false
+            }
         }
+    }
+
+    private func bringWindowToFront() {
+        NSApp.activate(ignoringOtherApps: true)
+        guard let window = NSApp.keyWindow ?? NSApp.windows.first(where: { $0.title == "Settings" }) else {
+            return
+        }
+        window.level = .floating
+        window.makeKeyAndOrderFront(nil)
+        window.orderFrontRegardless()
     }
 }

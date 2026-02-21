@@ -2,7 +2,7 @@ import Foundation
 import Testing
 @testable import SpeakSmooth
 
-@Suite("Settings Tests")
+@Suite("Settings Tests", .serialized)
 struct SettingsTests {
     // Clean up UserDefaults before each test to avoid cross-test pollution
     private func cleanDefaults() {

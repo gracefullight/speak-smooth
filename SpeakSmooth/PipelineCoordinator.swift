@@ -28,13 +28,26 @@ final class PipelineCoordinator {
 
     func loadSTTModel() async {
         do {
-            try await transcriptionService.loadModel()
+            try await transcriptionService.loadModel(allowSpeechPermissionPrompt: false)
         } catch {
-            appState.handleError("Failed to load STT model: \(error.localizedDescription)")
+            print("STT preload skipped: \(error.localizedDescription)")
         }
     }
 
     func startRecording() {
+        guard AudioCaptureManager.isMicAuthorized else {
+            Task { @MainActor in
+                let granted = await AudioCaptureManager.requestMicPermission()
+                if granted {
+                    self.startRecording()
+                } else {
+                    appState.handleError(AudioCaptureError.micPermissionDenied.localizedDescription)
+                    AudioCaptureManager.openMicrophonePrivacySettings()
+                }
+            }
+            return
+        }
+
         appState.startRecording()
 
         let builder = SegmentBuilder(
@@ -69,24 +82,47 @@ final class PipelineCoordinator {
             try audioCaptureManager.start()
             segmentBuilder = builder
         } catch {
+            if case AudioCaptureError.micPermissionDenied = error {
+                AudioCaptureManager.openMicrophonePrivacySettings()
+            }
             appState.handleError(error.localizedDescription)
         }
     }
 
     func stopRecording() {
         audioCaptureManager.stop()
+
+        guard let builder = segmentBuilder else {
+            appState.stopRecording()
+            return
+        }
+
+        let emittedPendingSegment = builder.flushPendingSegment()
         segmentBuilder = nil
-        appState.stopRecording()
+
+        if !emittedPendingSegment {
+            appState.stopRecording()
+        }
     }
 
     private func processSegment(_ segment: AudioSegment) async {
+        if await !transcriptionService.isModelLoaded {
+            do {
+                try await transcriptionService.loadModel()
+            } catch {
+                appState.handleError("STT model setup failed: \(error.localizedDescription)")
+                transitionToNextStateAfterProcessing()
+                return
+            }
+        }
+
         appState.transitionTo(.finalizingSTT)
         let transcript: TranscriptResult
         do {
             transcript = try await transcriptionService.transcribe(segment)
         } catch {
             appState.handleError("STT failed: \(error.localizedDescription)")
-            appState.transitionTo(.listening)
+            transitionToNextStateAfterProcessing()
             return
         }
 
@@ -126,7 +162,7 @@ final class PipelineCoordinator {
         appState.transitionTo(.saving)
         guard let listId = settings.selectedReminderListId else {
             appState.handleError("No Reminders list selected")
-            appState.transitionTo(.listening)
+            transitionToNextStateAfterProcessing()
             return
         }
 
@@ -148,6 +184,10 @@ final class PipelineCoordinator {
             appState.handleError("Save failed: \(error.localizedDescription)")
         }
 
-        appState.transitionTo(.listening)
+        transitionToNextStateAfterProcessing()
+    }
+
+    private func transitionToNextStateAfterProcessing() {
+        appState.transitionTo(audioCaptureManager.isRunning ? .listening : .idle)
     }
 }

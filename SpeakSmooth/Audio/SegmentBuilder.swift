@@ -42,6 +42,28 @@ final class SegmentBuilder: NSObject, @unchecked Sendable {
         vadWrapper.processAudioData(withBuffer: buffer, count: count)
     }
 
+    @discardableResult
+    func flushPendingSegment() -> Bool {
+        var segment: AudioSegment?
+
+        pcmQueue.sync {
+            isAccumulating = false
+
+            guard !accumulatedPCMData.isEmpty else { return }
+            let floats = Self.convertPCMDataToFloats(accumulatedPCMData)
+            accumulatedPCMData.removeAll()
+
+            guard !floats.isEmpty else { return }
+            let duration = Double(floats.count) / 16000.0
+            segment = AudioSegment(pcmFloats: floats, durationSeconds: duration)
+        }
+
+        guard let segment else { return false }
+        onVoiceEnded?()
+        onSegmentReady?(segment)
+        return true
+    }
+
     static func convertPCMDataToFloats(_ data: Data) -> [Float] {
         data.withUnsafeBytes { buffer in
             guard let baseAddress = buffer.baseAddress else { return [] }

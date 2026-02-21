@@ -23,6 +23,8 @@ struct SavedTask: Equatable {
 final class AppState {
     var pipelineState: PipelineState = .idle
     var lastSavedTask: SavedTask?
+    var lastErrorMessage: String?
+    var lastErrorAt: Date?
 
     var isRecording: Bool {
         switch pipelineState {
@@ -67,6 +69,8 @@ final class AppState {
     }
 
     func handleError(_ message: String) {
+        lastErrorMessage = message
+        lastErrorAt = Date()
         pipelineState = .error(message)
         Task {
             try? await Task.sleep(for: .seconds(3))

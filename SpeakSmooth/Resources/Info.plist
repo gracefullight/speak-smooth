@@ -18,5 +18,13 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>SpeakSmooth needs microphone access to transcribe your voice.</string>
+	<key>NSRemindersFullAccessUsageDescription</key>
+	<string>SpeakSmooth needs full Reminders access to save rewritten text into your selected list.</string>
+	<key>NSRemindersUsageDescription</key>
+	<string>SpeakSmooth needs Reminders access to save rewritten text into your selected list.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>SpeakSmooth uses speech recognition to convert your voice to text.</string>
 </dict>
 </plist>

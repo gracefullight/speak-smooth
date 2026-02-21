@@ -4,12 +4,33 @@ SCHEME = "SpeakSmooth"
 DESTINATION = "platform=macOS"
 
 [tasks.dev]
-description = "Build the app in Debug"
+description = "Build and launch the app in Debug"
 alias = "d"
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Debug build
+
+APP_PATH="$(
+  xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Debug -showBuildSettings \
+  | awk -F' = ' '/TARGET_BUILD_DIR/{dir=$2} /FULL_PRODUCT_NAME/{name=$2} END{print dir "/" name}'
+)"
+
+if [ -z "${APP_PATH}" ] || [ ! -d "${APP_PATH}" ]; then
+  echo "Could not find built app path."
+  exit 1
+fi
+
+open "${APP_PATH}"
+'''
+
+[tasks.build]
+description = "Build the app in Release"
+alias = "b"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release build
 '''
 
 [tasks.test]

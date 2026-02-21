@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct MenuBarPopover: View {
     @Environment(AppState.self) private var appState
@@ -14,7 +15,15 @@ struct MenuBarPopover: View {
                     .font(.headline)
                 Spacer()
                 Button {
+                    NSApp.activate(ignoringOtherApps: true)
                     openWindow(id: "settings")
+                    DispatchQueue.main.async {
+                        if let settingsWindow = NSApp.windows.first(where: { $0.title == "Settings" }) {
+                            settingsWindow.level = .floating
+                            settingsWindow.makeKeyAndOrderFront(nil)
+                            settingsWindow.orderFrontRegardless()
+                        }
+                    }
                 } label: {
                     Image(systemName: "gearshape")
                 }
@@ -48,6 +57,29 @@ struct MenuBarPopover: View {
                     Text(appState.statusText)
                         .font(.caption)
                         .foregroundStyle(.secondary)
+                }
+
+                if case .error(let message) = appState.pipelineState,
+                   message.contains("Microphone permission denied") {
+                    Button("Open Mic Privacy Settings") {
+                        AudioCaptureManager.openMicrophonePrivacySettings()
+                    }
+                    .font(.caption)
+                }
+
+                if let lastErrorMessage = appState.lastErrorMessage {
+                    Text("Last error: \(lastErrorMessage)")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                }
+
+                if settings.selectedReminderListId == nil {
+                    Text("Select a Reminders list in Settings before saving.")
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
                 }
             }
             .padding(.vertical, 12)

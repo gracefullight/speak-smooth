@@ -20,13 +20,25 @@ actor TranscriptionService {
     private(set) var isModelLoaded = false
     private(set) var loadedModelName: String?
 
+    func prepareSpeechPermissionOnLaunch() async {
+        if SFSpeechRecognizer.authorizationStatus() == .notDetermined {
+            _ = await requestSpeechAuthorization()
+        }
+
+        _ = try? await setupAppleOnDeviceSTT(allowPermissionPrompt: false)
+    }
+
     func loadModel(allowSpeechPermissionPrompt: Bool = true) async throws {
         if isModelLoaded, sttEngine != nil { return }
 
-        // During background preload, defer setup if speech permission has never been asked yet.
-        // We'll request permission when the user actually records.
-        if !allowSpeechPermissionPrompt, SFSpeechRecognizer.authorizationStatus() == .notDetermined {
-            return
+        // During launch preload, don't force fallback model work unless speech is already authorized.
+        if !allowSpeechPermissionPrompt {
+            switch SFSpeechRecognizer.authorizationStatus() {
+            case .notDetermined, .denied, .restricted:
+                return
+            default:
+                break
+            }
         }
 
         if try await setupAppleOnDeviceSTT(allowPermissionPrompt: allowSpeechPermissionPrompt) {

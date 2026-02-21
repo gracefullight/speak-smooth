@@ -10,6 +10,8 @@ final class PipelineCoordinator {
     private let transcriptionService = TranscriptionService()
     private let remindersClient: RemindersClient
     private var rewriter: (any RewriteService)?
+    private var segmentProcessingTailTask: Task<Void, Never>?
+    private var queuedSegmentCount = 0
 
     init(appState: AppState, settings: AppSettings, remindersManager: RemindersManager) {
         self.appState = appState
@@ -24,6 +26,12 @@ final class PipelineCoordinator {
         } else if let apiKey = settings.openRouterApiKey, !apiKey.isEmpty {
             rewriter = OpenRouterRewriter(apiKey: apiKey)
         }
+    }
+
+    func prepareOnLaunch() async {
+        _ = await AudioCaptureManager.requestMicPermission()
+        await transcriptionService.prepareSpeechPermissionOnLaunch()
+        await loadSTTModel()
     }
 
     func loadSTTModel() async {
@@ -70,7 +78,7 @@ final class PipelineCoordinator {
 
         builder.onSegmentReady = { [weak self] segment in
             Task { @MainActor in
-                await self?.processSegment(segment)
+                self?.enqueueSegmentForProcessing(segment)
             }
         }
 
@@ -93,15 +101,40 @@ final class PipelineCoordinator {
         audioCaptureManager.stop()
 
         guard let builder = segmentBuilder else {
-            appState.stopRecording()
+            if queuedSegmentCount == 0 {
+                appState.stopRecording()
+            } else {
+                appState.transitionTo(.finalizingSTT)
+            }
             return
         }
 
         let emittedPendingSegment = builder.flushPendingSegment()
         segmentBuilder = nil
 
-        if !emittedPendingSegment {
+        if emittedPendingSegment || queuedSegmentCount > 0 {
+            appState.transitionTo(.finalizingSTT)
+        } else {
             appState.stopRecording()
+        }
+    }
+
+    private func enqueueSegmentForProcessing(_ segment: AudioSegment) {
+        queuedSegmentCount += 1
+        let previousTask = segmentProcessingTailTask
+
+        segmentProcessingTailTask = Task { [weak self] in
+            _ = await previousTask?.result
+            guard let self else { return }
+            await self.processSegment(segment)
+            await self.completeProcessedSegment()
+        }
+    }
+
+    private func completeProcessedSegment() {
+        queuedSegmentCount = max(queuedSegmentCount - 1, 0)
+        if queuedSegmentCount == 0 {
+            transitionToNextStateAfterProcessing()
         }
     }
 
@@ -111,7 +144,6 @@ final class PipelineCoordinator {
                 try await transcriptionService.loadModel()
             } catch {
                 appState.handleError("STT model setup failed: \(error.localizedDescription)")
-                transitionToNextStateAfterProcessing()
                 return
             }
         }
@@ -122,7 +154,6 @@ final class PipelineCoordinator {
             transcript = try await transcriptionService.transcribe(segment)
         } catch {
             appState.handleError("STT failed: \(error.localizedDescription)")
-            transitionToNextStateAfterProcessing()
             return
         }
 
@@ -162,7 +193,6 @@ final class PipelineCoordinator {
         appState.transitionTo(.saving)
         guard let listId = settings.selectedReminderListId else {
             appState.handleError("No Reminders list selected")
-            transitionToNextStateAfterProcessing()
             return
         }
 
@@ -183,8 +213,6 @@ final class PipelineCoordinator {
         } catch {
             appState.handleError("Save failed: \(error.localizedDescription)")
         }
-
-        transitionToNextStateAfterProcessing()
     }
 
     private func transitionToNextStateAfterProcessing() {

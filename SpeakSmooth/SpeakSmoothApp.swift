@@ -20,7 +20,7 @@ struct SpeakSmoothApp: App {
         _settings = State(initialValue: settings)
         _remindersManager = State(initialValue: remindersManager)
         _coordinator = State(initialValue: coordinator)
-        Task { await coordinator.loadSTTModel() }
+        Task { await coordinator.prepareOnLaunch() }
     }
 
     var body: some Scene {

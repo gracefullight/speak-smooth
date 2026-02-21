@@ -18,7 +18,7 @@ struct AppStateTests {
         #expect(state.menuBarIconName == "mic.fill")
 
         state.pipelineState = .finalizingSTT
-        #expect(state.menuBarIconName == "mic.badge.ellipsis")
+        #expect(state.menuBarIconName == "mic.fill")
 
         state.pipelineState = .error("test")
         #expect(state.menuBarIconName == "mic.slash")

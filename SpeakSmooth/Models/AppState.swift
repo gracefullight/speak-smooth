@@ -37,7 +37,7 @@ final class AppState {
         switch pipelineState {
         case .idle: return "mic"
         case .listening, .speaking, .silenceCountdown: return "mic.fill"
-        case .finalizingSTT, .rewriting, .saving: return "mic.badge.ellipsis"
+        case .finalizingSTT, .rewriting, .saving: return "mic.fill"
         case .error: return "mic.slash"
         }
     }

@@ -6,23 +6,27 @@ import Testing
 struct OpenRouterRewriterTests {
     @Test("Parses valid OpenRouter response body")
     func parseResponseBody() throws {
-        let responseJSON = """
-        {
-          "id": "gen-123",
-          "choices": [{
-            "message": {
-              "role": "assistant",
-              "content": "{\\"revised\\": \\"Hello there.\\", \\"alternatives\\": [], \\"corrections\\": [\\"greeting\\"]}"
-            },
-            "finish_reason": "stop"
-          }],
-          "model": "openrouter/free"
-        }
-        """
-        let data = responseJSON.data(using: .utf8)!
+        let resultJSON = RewriteResult(revised: "Hello there.", alternatives: [], corrections: ["greeting"])
+        let content = String(decoding: try JSONEncoder().encode(resultJSON), as: UTF8.self)
+        let data = try JSONSerialization.data(withJSONObject: ["choices": [["message": ["content": content]]]])
         let result = try OpenRouterRewriter.parseResponse(data)
         #expect(result.revised == "Hello there.")
         #expect(result.corrections == ["greeting"])
+    }
+
+    @Test("Parses fenced JSON and trims the revised sentence")
+    func fencedJSON() throws {
+        let content = "```json\n{\"revised\":\" Hello. \",\"alternatives\":[],\"corrections\":[]}\n```"
+        let data = try JSONSerialization.data(withJSONObject: ["choices": [["message": ["content": content]]]])
+        #expect(try OpenRouterRewriter.parseResponse(data).revised == "Hello.")
+    }
+
+    @Test("Rejects blank revisions and empty choices")
+    func invalidResponses() throws {
+        let content = "{\"revised\":\" \",\"alternatives\":[],\"corrections\":[]}"
+        let blank = try JSONSerialization.data(withJSONObject: ["choices": [["message": ["content": content]]]])
+        #expect(throws: (any Error).self) { try OpenRouterRewriter.parseResponse(blank) }
+        #expect(throws: (any Error).self) { try OpenRouterRewriter.parseResponse(Data("{\"choices\":[]}".utf8)) }
     }
 
     @Test("Builds correct request body")

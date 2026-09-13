@@ -2,9 +2,15 @@ import EventKit
 import Foundation
 import AppKit
 
+@MainActor
+protocol ReminderStore {
+    func fetchReminderLists() throws -> [ReminderList]
+    func createReminder(listId: String, title: String, notes: String?) throws -> String
+}
+
 @Observable
 @MainActor
-final class RemindersManager {
+final class RemindersManager: ReminderStore {
     private let eventStore: EKEventStore
     private(set) var authorizationStatus: EKAuthorizationStatus
 
@@ -85,6 +91,11 @@ final class RemindersManager {
         guard let calendar = eventStore.calendar(withIdentifier: listId) else {
             throw RemindersError.listNotFound
         }
+        guard calendar.allowedEntityTypes.contains(.reminder), calendar.allowsContentModifications else {
+            throw RemindersError.listNotWritable
+        }
+        let title = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !title.isEmpty else { throw RemindersError.emptyTitle }
 
         let reminder = EKReminder(eventStore: eventStore)
         reminder.calendar = calendar
@@ -100,7 +111,7 @@ final class RemindersManager {
     }
 
     private static func isAuthorizedStatus(_ status: EKAuthorizationStatus) -> Bool {
-        status == .fullAccess || status == .writeOnly
+        status == .fullAccess
     }
 }
 
@@ -108,6 +119,8 @@ enum RemindersError: LocalizedError {
     case accessDenied
     case openSystemSettingsRequired
     case listNotFound
+    case listNotWritable
+    case emptyTitle
     case saveFailed(String)
 
     var errorDescription: String? {
@@ -118,6 +131,10 @@ enum RemindersError: LocalizedError {
             return "Reminders access is denied. Enable SpeakSmooth in System Settings > Privacy & Security > Reminders."
         case .listNotFound:
             return "Selected Reminders list not found"
+        case .listNotWritable:
+            return "Selected Reminders list is read-only"
+        case .emptyTitle:
+            return "The reminder title is empty"
         case .saveFailed(let message):
             return "Failed to save reminder: \(message)"
         }

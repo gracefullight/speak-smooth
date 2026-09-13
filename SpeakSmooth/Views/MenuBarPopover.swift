@@ -6,121 +6,153 @@ struct MenuBarPopover: View {
     @Environment(AppSettings.self) private var settings
     @Environment(RemindersManager.self) private var remindersManager
     @Environment(\.openWindow) private var openWindow
+    @State private var confirmQuit = false
     var coordinator: PipelineCoordinator?
+
+    private var needsSetup: Bool {
+        !remindersManager.isAuthorized || settings.selectedReminderListId == nil
+    }
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("SpeakSmooth")
-                    .font(.headline)
+                Text("SpeakSmooth").font(.headline)
                 Spacer()
-                Button {
-                    NSApp.activate(ignoringOtherApps: true)
-                    openWindow(id: "settings")
-                    DispatchQueue.main.async {
-                        if let settingsWindow = NSApp.windows.first(where: { $0.title == "Settings" }) {
-                            settingsWindow.level = .floating
-                            settingsWindow.makeKeyAndOrderFront(nil)
-                            settingsWindow.orderFrontRegardless()
-                        }
-                    }
-                } label: {
-                    Image(systemName: "gearshape")
-                }
-                .buttonStyle(.plain)
+                Button(action: openSettings) { Image(systemName: "gearshape") }
+                    .help("Settings")
+                    .accessibilityLabel("Settings")
+                    .keyboardShortcut(",")
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 12)
-            .padding(.bottom, 8)
-
+            .padding(16)
             Divider()
 
             VStack(spacing: 12) {
-                Button {
-                    if appState.isRecording {
-                        coordinator?.stopRecording()
-                    } else {
-                        coordinator?.startRecording()
+                if needsSetup && !appState.isRecording && !appState.isStartingRecording {
+                    Button("Set Up Reminders", action: openSettings)
+                        .buttonStyle(.borderedProminent)
+                } else {
+                    Button {
+                        if appState.isRecording || appState.isStartingRecording {
+                            coordinator?.stopRecording()
+                        } else {
+                            coordinator?.startRecording()
+                        }
+                    } label: {
+                        Label(
+                            appState.isStartingRecording ? "Cancel" : appState.isRecording ? "Stop Recording" : appState.isProcessing ? "Finishing..." : "Start Recording",
+                            systemImage: appState.isRecording || appState.isStartingRecording ? "stop.fill" : "mic.fill"
+                        )
+                        .frame(maxWidth: .infinity, minHeight: 28)
                     }
-                } label: {
-                    Label(
-                        appState.isRecording ? "Stop" : "Start",
-                        systemImage: appState.isRecording ? "stop.circle.fill" : "mic.circle.fill"
-                    )
-                    .font(.title2)
+                    .buttonStyle(.borderedProminent)
+                    .tint(appState.isRecording ? .red : .accentColor)
+                    .disabled(!appState.isRecording && !appState.isStartingRecording && appState.isProcessing)
                 }
-                .buttonStyle(.plain)
-                .foregroundStyle(appState.isRecording ? .red : .accentColor)
 
                 HStack(spacing: 6) {
-                    StatusIndicator(state: appState.pipelineState)
-                    Text(appState.statusText)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-
-                if case .error(let message) = appState.pipelineState,
-                   message.contains("Microphone permission denied") {
-                    Button("Open Mic Privacy Settings") {
-                        AudioCaptureManager.openMicrophonePrivacySettings()
+                    if appState.isProcessing || appState.isStartingRecording {
+                        ProgressView().controlSize(.small)
+                    } else {
+                        StatusIndicator(state: appState.pipelineState)
                     }
-                    .font(.caption)
-                }
-
-                if let lastErrorMessage = appState.lastErrorMessage {
-                    Text("Last error: \(lastErrorMessage)")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(2)
-                        .multilineTextAlignment(.center)
-                }
-
-                if settings.selectedReminderListId == nil {
-                    Text("Select a Reminders list in Settings before saving.")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                }
-            }
-            .padding(.vertical, 12)
-
-            Divider()
-
-            VStack(alignment: .leading, spacing: 6) {
-                if let task = appState.lastSavedTask {
-                    Text("Last saved:")
+                    Text(appState.isStartingRecording ? appState.startupStatus : appState.pipelineState.isError ? "Action needed" : appState.statusText)
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    TaskPreviewCard(task: task)
-                } else {
-                    Text("No tasks saved yet")
-                        .font(.caption)
-                        .foregroundStyle(.tertiary)
-                        .frame(maxWidth: .infinity)
+                }
+                if appState.isRecording && appState.isProcessing {
+                    Label("Microphone is still on", systemImage: "mic.fill")
+                        .font(.caption).foregroundStyle(.red)
+                }
+                if appState.queuedSegmentCount > 1 {
+                    Text("\(appState.queuedSegmentCount) sentences remaining").font(.caption)
+                }
+                if let message = appState.lastErrorMessage {
+                    HStack(alignment: .top) {
+                        Text(message).font(.caption).textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 4)
+                        Button { appState.dismissError() } label: { Image(systemName: "xmark") }
+                            .help("Dismiss error").accessibilityLabel("Dismiss error")
+                    }
+                    .foregroundStyle(.red)
+                    if message == AudioCaptureError.micPermissionDenied.localizedDescription {
+                        Button("Microphone Privacy Settings") { AudioCaptureManager.openMicrophonePrivacySettings() }
+                    }
+                }
+                if let notice = appState.notice {
+                    Text(notice).font(.caption).foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(16)
 
             Divider()
-
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    ForEach(appState.pendingReminders) { pending in
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("Not saved", systemImage: "exclamationmark.triangle")
+                                .font(.caption).foregroundStyle(.orange)
+                            Text(pending.title).textSelection(.enabled)
+                            HStack {
+                                Button("Retry Save") { coordinator?.retrySave(pending) }
+                                    .disabled(appState.isProcessing)
+                                Spacer()
+                                Button {
+                                    NSPasteboard.general.clearContents()
+                                    NSPasteboard.general.setString(pending.title + "\n" + pending.body, forType: .string)
+                                } label: { Image(systemName: "doc.on.doc") }
+                                .help("Copy unsaved sentence").accessibilityLabel("Copy unsaved sentence")
+                            }
+                        }
+                        .padding(10)
+                        .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+                    }
+                    if let task = appState.lastSavedTask {
+                        Text("Last saved").font(.caption).foregroundStyle(.secondary)
+                        TaskPreviewCard(task: task)
+                    } else if appState.pendingReminders.isEmpty {
+                        Text("No sentences saved yet").font(.caption).foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, minHeight: 36)
+                    }
+                }
+                .padding(16)
+            }
+            .frame(height: appState.pendingReminders.isEmpty ? (appState.lastSavedTask == nil ? 68 : 220) : 260)
+            Divider()
             HStack {
-                Image(systemName: remindersManager.isAuthorized ? "checkmark.circle.fill" : "xmark.circle")
+                Image(systemName: remindersManager.isAuthorized ? "checkmark.circle.fill" : "exclamationmark.circle")
                     .foregroundStyle(remindersManager.isAuthorized ? .green : .secondary)
-                VStack(alignment: .leading) {
-                    Text(remindersManager.isAuthorized ? "Reminders access enabled" : "Reminders access needed")
-                        .font(.caption)
-                    if let listName = settings.selectedReminderListName {
-                        Text("List: \(listName)")
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
-                    }
-                }
+                Text(settings.selectedReminderListName ?? "No list selected")
+                    .font(.caption).lineLimit(1)
+                    .help(settings.selectedReminderListName ?? "No list selected")
                 Spacer()
+                Button {
+                    if appState.isRecording || appState.isStartingRecording || appState.isProcessing || !appState.pendingReminders.isEmpty {
+                        confirmQuit = true
+                    } else {
+                        NSApp.terminate(nil)
+                    }
+                } label: { Image(systemName: "power") }
+                .help("Quit SpeakSmooth").accessibilityLabel("Quit SpeakSmooth")
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(16)
         }
-        .frame(width: 320)
+        .frame(width: 360)
+        .onAppear { remindersManager.refreshAuthorizationStatus() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            remindersManager.refreshAuthorizationStatus()
+        }
+        .alert("Quit SpeakSmooth?", isPresented: $confirmQuit) {
+            Button("Keep Open", role: .cancel) {}
+            Button("Quit", role: .destructive) { NSApp.terminate(nil) }
+        } message: {
+            Text("Recording and processing will stop. Unsaved sentences will be lost.")
+        }
+    }
+
+    private func openSettings() {
+        NSApp.activate(ignoringOtherApps: true)
+        openWindow(id: "settings")
     }
 }

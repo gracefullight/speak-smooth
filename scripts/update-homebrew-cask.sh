@@ -25,6 +25,8 @@ cask "${CASK_NAME}" do
   desc "Menu bar app that rewrites speech and saves to Apple Reminders"
   homepage "https://github.com/${REPO}"
 
+  depends_on macos: ">= :sequoia"
+
   app "SpeakSmooth.app"
 end
 EOF

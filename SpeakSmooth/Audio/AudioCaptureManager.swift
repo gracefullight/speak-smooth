@@ -1,10 +1,17 @@
 import AVFoundation
 import AppKit
 
-final class AudioCaptureManager: @unchecked Sendable {
+protocol AudioCapturing: AnyObject {
+    var isRunning: Bool { get }
+    var onAudioBuffer: (@Sendable (_ buffer: UnsafePointer<Float>, _ count: UInt) -> Void)? { get set }
+    func start() throws
+    func stop()
+}
+
+final class AudioCaptureManager: AudioCapturing, @unchecked Sendable {
     private var audioEngine: AVAudioEngine?
     private let bufferSize: AVAudioFrameCount = 4800
-    var onAudioBuffer: ((_ buffer: UnsafePointer<Float>, _ count: UInt) -> Void)?
+    var onAudioBuffer: (@Sendable (_ buffer: UnsafePointer<Float>, _ count: UInt) -> Void)?
 
     var isRunning: Bool { audioEngine?.isRunning ?? false }
 
@@ -28,39 +35,75 @@ final class AudioCaptureManager: @unchecked Sendable {
     }
 
     func start() throws {
+        guard !isRunning else { return }
         guard Self.isMicAuthorized else {
             throw AudioCaptureError.micPermissionDenied
         }
 
         let engine = AVAudioEngine()
         let inputNode = engine.inputNode
-        let nativeFormat = inputNode.inputFormat(forBus: 0)
-
-        guard let recordingFormat = AVAudioFormat(
-            commonFormat: .pcmFormatFloat32,
-            sampleRate: nativeFormat.sampleRate,
-            channels: 1,
-            interleaved: true
-        ) else {
+        let nativeFormat = inputNode.outputFormat(forBus: 0)
+        guard nativeFormat.sampleRate > 0, nativeFormat.channelCount > 0 else {
             throw AudioCaptureError.formatError
         }
 
-        inputNode.installTap(onBus: 0, bufferSize: bufferSize, format: recordingFormat) { [weak self] buffer, _ in
-            guard let self,
-                  let channelData = buffer.floatChannelData else { return }
-            let frameLength = UInt(buffer.frameLength)
-            self.onAudioBuffer?(channelData[0], frameLength)
+        guard let recordingFormat = AVAudioFormat(
+            commonFormat: .pcmFormatFloat32,
+            sampleRate: 48_000,
+            channels: 1,
+            interleaved: false
+        ), let converter = AVAudioConverter(from: nativeFormat, to: recordingFormat) else {
+            throw AudioCaptureError.formatError
+        }
+
+        let onAudioBuffer = self.onAudioBuffer
+        inputNode.installTap(onBus: 0, bufferSize: bufferSize, format: nativeFormat) { buffer, _ in
+            guard let output = Self.resample(buffer, using: converter),
+                  let channel = output.floatChannelData?[0] else { return }
+            onAudioBuffer?(channel, UInt(output.frameLength))
         }
 
         engine.prepare()
-        try engine.start()
+        do {
+            try engine.start()
+        } catch {
+            inputNode.removeTap(onBus: 0)
+            throw error
+        }
         self.audioEngine = engine
+    }
+
+    static func resample(_ buffer: AVAudioPCMBuffer, using converter: AVAudioConverter) -> AVAudioPCMBuffer? {
+        let target = converter.outputFormat
+        let capacity = AVAudioFrameCount(ceil(Double(buffer.frameLength) * target.sampleRate / buffer.format.sampleRate)) + 32
+        guard let output = AVAudioPCMBuffer(pcmFormat: target, frameCapacity: capacity) else { return nil }
+        let input = ConverterInput(buffer: buffer)
+        var error: NSError?
+        converter.convert(to: output, error: &error) { _, status in input.next(status: status) }
+        return error == nil && output.frameLength > 0 ? output : nil
     }
 
     func stop() {
         audioEngine?.inputNode.removeTap(onBus: 0)
         audioEngine?.stop()
         audioEngine = nil
+        onAudioBuffer = nil
+    }
+}
+
+// AVAudioConverter invokes this input provider synchronously during conversion.
+private final class ConverterInput: @unchecked Sendable {
+    let buffer: AVAudioPCMBuffer
+    private var supplied = false
+    init(buffer: AVAudioPCMBuffer) { self.buffer = buffer }
+    func next(status: UnsafeMutablePointer<AVAudioConverterInputStatus>) -> AVAudioBuffer? {
+        guard !supplied else {
+            status.pointee = .noDataNow
+            return nil
+        }
+        supplied = true
+        status.pointee = .haveData
+        return buffer
     }
 }
 

@@ -18,6 +18,13 @@ struct SavedTask: Equatable {
     let savedAt: Date
 }
 
+struct PendingReminder: Identifiable, Equatable {
+    let id = UUID()
+    let title: String
+    let body: String
+    let listId: String
+}
+
 @Observable
 @MainActor
 final class AppState {
@@ -25,15 +32,19 @@ final class AppState {
     var lastSavedTask: SavedTask?
     var lastErrorMessage: String?
     var lastErrorAt: Date?
+    private(set) var isRecording = false
+    var isStartingRecording = false
+    var startupStatus = "Waiting for microphone access..."
+    var isFinishingRecording = false
+    var queuedSegmentCount = 0
+    var pendingReminders: [PendingReminder] = []
+    var notice: String?
 
-    var isRecording: Bool {
-        switch pipelineState {
-        case .idle, .error: return false
-        default: return true
-        }
-    }
+    var isProcessing: Bool { queuedSegmentCount > 0 || isFinishingRecording }
+    var canStartRecording: Bool { !isRecording && !isStartingRecording && !isProcessing }
 
     var menuBarIconName: String {
+        if isRecording { return "mic.fill" }
         switch pipelineState {
         case .idle: return "mic"
         case .listening, .speaking, .silenceCountdown: return "mic.fill"
@@ -56,12 +67,14 @@ final class AppState {
     }
 
     func startRecording() {
-        guard pipelineState == .idle || pipelineState.isError else { return }
+        guard !isRecording else { return }
+        isRecording = true
         pipelineState = .listening
     }
 
     func stopRecording() {
-        pipelineState = .idle
+        isRecording = false
+        if !isProcessing { pipelineState = .idle }
     }
 
     func transitionTo(_ state: PipelineState) {
@@ -72,11 +85,13 @@ final class AppState {
         lastErrorMessage = message
         lastErrorAt = Date()
         pipelineState = .error(message)
-        Task {
-            try? await Task.sleep(for: .seconds(3))
-            if case .error = pipelineState {
-                pipelineState = .idle
-            }
+    }
+
+    func dismissError() {
+        lastErrorMessage = nil
+        lastErrorAt = nil
+        if pipelineState.isError {
+            pipelineState = isRecording ? .listening : .idle
         }
     }
 }

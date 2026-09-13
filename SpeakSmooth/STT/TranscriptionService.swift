@@ -8,7 +8,12 @@ struct TranscriptResult: Sendable {
     let originalTranscript: String
 }
 
-actor TranscriptionService {
+protocol Transcribing: Sendable {
+    func loadModel(allowSpeechPermissionPrompt: Bool) async throws
+    func transcribe(_ segment: AudioSegment) async throws -> TranscriptResult
+}
+
+actor TranscriptionService: Transcribing {
     private enum STTEngine {
         case appleOnDevice
         case whisper
@@ -57,6 +62,8 @@ actor TranscriptionService {
         case .appleOnDevice:
             do {
                 return try await transcribeWithAppleSpeech(segment)
+            } catch is CancellationError {
+                throw CancellationError()
             } catch {
                 try await loadWhisperFallback()
                 return try await transcribeWithWhisper(segment)
@@ -84,7 +91,7 @@ actor TranscriptionService {
         }
 
         guard authorizationStatus == .authorized else { return false }
-        guard recognizer.supportsOnDeviceRecognition else { return false }
+        guard recognizer.supportsOnDeviceRecognition, recognizer.isAvailable else { return false }
 
         speechRecognizer = recognizer
         sttEngine = .appleOnDevice
@@ -118,6 +125,7 @@ actor TranscriptionService {
 
         var lastError: Error?
         for modelName in candidateModels {
+            try Task.checkCancellation()
             do {
                 whisperKit = try await WhisperKit(
                     model: modelName,
@@ -130,6 +138,7 @@ actor TranscriptionService {
                 loadedModelName = modelName
                 return
             } catch {
+                try Task.checkCancellation()
                 lastError = error
             }
         }
@@ -186,25 +195,13 @@ actor TranscriptionService {
         request.requiresOnDeviceRecognition = true
         request.shouldReportPartialResults = false
 
-        let text = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<String, Error>) in
-            var resumed = false
-            var task: SFSpeechRecognitionTask?
-            task = speechRecognizer.recognitionTask(with: request) { result, error in
-                guard !resumed else { return }
-                if let error {
-                    resumed = true
-                    task?.cancel()
-                    continuation.resume(throwing: error)
-                    return
-                }
-                guard let result, result.isFinal else { return }
-                resumed = true
-                task?.cancel()
-                continuation.resume(
-                    returning: result.bestTranscription.formattedString
-                        .trimmingCharacters(in: .whitespacesAndNewlines)
-                )
+        let operation = SpeechRecognitionOperation()
+        let text = try await withTaskCancellationHandler {
+            try await withCheckedThrowingContinuation { continuation in
+                operation.start(recognizer: speechRecognizer, request: request, continuation: continuation)
             }
+        } onCancel: {
+            operation.finish(.failure(CancellationError()))
         }
 
         guard !text.isEmpty else {
@@ -215,6 +212,7 @@ actor TranscriptionService {
     }
 
     private func writeSegmentToTemporaryWav(_ segment: AudioSegment) throws -> URL {
+        guard !segment.pcmFloats.isEmpty else { throw TranscriptionError.emptyTranscript }
         let tempURL = FileManager.default.temporaryDirectory
             .appendingPathComponent("speaksmooth-\(UUID().uuidString)")
             .appendingPathExtension("wav")
@@ -249,6 +247,58 @@ actor TranscriptionService {
     }
 }
 
+private final class SpeechRecognitionOperation: @unchecked Sendable {
+    private let lock = NSLock()
+    private var continuation: CheckedContinuation<String, Error>?
+    private var task: SFSpeechRecognitionTask?
+    private var timeout: DispatchWorkItem?
+    private var completed = false
+
+    func start(recognizer: SFSpeechRecognizer, request: SFSpeechRecognitionRequest,
+               continuation: CheckedContinuation<String, Error>) {
+        lock.lock()
+        if completed {
+            lock.unlock()
+            continuation.resume(throwing: CancellationError())
+            return
+        }
+        self.continuation = continuation
+        let timeout = DispatchWorkItem { [weak self] in
+            self?.finish(.failure(TranscriptionError.recognitionTimedOut))
+        }
+        self.timeout = timeout
+        lock.unlock()
+        DispatchQueue.global().asyncAfter(deadline: .now() + 45, execute: timeout)
+        let task = recognizer.recognitionTask(with: request) { [self] result, error in
+            if let error { finish(.failure(error)) }
+            else if let result, result.isFinal {
+                finish(.success(result.bestTranscription.formattedString.trimmingCharacters(in: .whitespacesAndNewlines)))
+            }
+        }
+        lock.lock()
+        let shouldCancel = completed
+        if !shouldCancel { self.task = task }
+        lock.unlock()
+        if shouldCancel { task.cancel() }
+    }
+
+    func finish(_ result: Result<String, Error>) {
+        lock.lock()
+        guard !completed else { lock.unlock(); return }
+        completed = true
+        let continuation = self.continuation
+        let task = self.task
+        let timeout = self.timeout
+        self.continuation = nil
+        self.task = nil
+        self.timeout = nil
+        lock.unlock()
+        timeout?.cancel()
+        task?.cancel()
+        continuation?.resume(with: result)
+    }
+}
+
 enum TranscriptionError: LocalizedError {
     case modelNotLoaded
     case modelLoadFailed(String)
@@ -256,6 +306,7 @@ enum TranscriptionError: LocalizedError {
     case onDeviceSpeechUnavailable
     case audioFileBuildFailed
     case emptyTranscript
+    case recognitionTimedOut
 
     var errorDescription: String? {
         switch self {
@@ -265,6 +316,7 @@ enum TranscriptionError: LocalizedError {
         case .onDeviceSpeechUnavailable: return "On-device speech recognition unavailable"
         case .audioFileBuildFailed: return "Could not prepare audio for speech recognition"
         case .emptyTranscript: return "No speech detected in segment"
+        case .recognitionTimedOut: return "Speech recognition timed out"
         }
     }
 }

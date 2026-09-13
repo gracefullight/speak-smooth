@@ -11,6 +11,7 @@ struct SettingsView: View {
     @State private var apiKeyInput = ""
     @State private var remindersErrorMessage: String?
     @State private var showOpenPrivacySettingsButton = false
+    @State private var apiKeySaved = false
 
     var body: some View {
         @Bindable var settings = settings
@@ -25,6 +26,7 @@ struct SettingsView: View {
                         .font(.headline)
                     HStack {
                         Slider(value: $settings.silenceTimeoutSeconds, in: 1.0...10.0, step: 0.5)
+                            .accessibilityLabel("Silence timeout")
                         Text("\(settings.silenceTimeoutSeconds, specifier: "%.1f")s")
                             .monospacedDigit()
                             .frame(width: 52, alignment: .trailing)
@@ -43,9 +45,14 @@ struct SettingsView: View {
                                 .foregroundStyle(.green)
                             Text("Access enabled")
                             Spacer()
-                            Button("Refresh Lists") {
+                            Button {
                                 Task { await loadLists() }
+                            } label: {
+                                Image(systemName: "arrow.clockwise")
                             }
+                            .help("Refresh lists")
+                            .accessibilityLabel("Refresh lists")
+                            .disabled(isLoadingLists)
                         }
                     } else {
                         Button("Enable Reminders Access") {
@@ -80,15 +87,14 @@ struct SettingsView: View {
                             }
                         }
 
-                        Picker("List", selection: $settings.selectedReminderListId) {
-                            Text("Select a list").tag(String?.none)
-                            ForEach(reminderLists) { list in
-                                Text(list.displayName).tag(Optional(list.id))
+                        listPicker
+                        if !isLoadingLists && reminderLists.isEmpty {
+                            Text("No writable lists available.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Button("Open Reminders") {
+                                NSWorkspace.shared.open(URL(string: "x-apple-reminderkit://")!)
                             }
-                        }
-                        .labelsHidden()
-                        .onChange(of: settings.selectedReminderListId) { _, newValue in
-                            settings.selectedReminderListName = reminderLists.first { $0.id == newValue }?.displayName
                         }
                     }
                 }
@@ -98,43 +104,52 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("OpenRouter API Key")
                         .font(.headline)
-                    Text("Optional. Used as LLM fallback when Apple Intelligence is unavailable.")
+                    Text("Optional. Fallback sends transcript text to OpenRouter. Saved in Keychain.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     SecureField("sk-or-...", text: $apiKeyInput)
                         .textFieldStyle(.roundedBorder)
-                        .onSubmit {
-                            settings.openRouterApiKey = apiKeyInput.isEmpty ? nil : apiKeyInput
+                        .onSubmit { saveAPIKey() }
+                        .onChange(of: apiKeyInput) { _, _ in apiKeySaved = false }
+                    HStack {
+                        Button("Save Key") { saveAPIKey() }
+                            .disabled(apiKeyInput.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        Button("Remove Key", role: .destructive) {
+                            if settings.saveAPIKey("") {
+                                apiKeyInput = ""
+                                apiKeySaved = false
+                            }
                         }
+                        .disabled(settings.openRouterApiKey == nil)
+                        if apiKeySaved {
+                            Label("Saved", systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                                .font(.caption)
+                        }
+                    }
+                    if let error = settings.apiKeyError {
+                        Text(error).font(.caption).foregroundStyle(.red)
+                    }
                 }
 
                 Divider()
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Sponsors")
+                    Text("About")
                         .font(.headline)
-                    Text("If this project helped you, please consider buying me a coffee!")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-
                     Link("Buy Me A Coffee", destination: URL(string: "https://www.buymeacoffee.com/gracefullight")!)
                     Link("GitHub Repository", destination: URL(string: "https://github.com/gracefullight/speak-smooth")!)
-
-                    Text("Or leave a star:")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text("gh api --method PUT /user/starred/gracefullight/pkgs")
-                        .font(.caption.monospaced())
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .textSelection(.enabled)
                 }
 
                 Divider()
 
                 HStack {
                     Spacer()
-                    Button("Done") { dismiss() }
+                    Button("Done") {
+                        if apiKeyInput == (settings.openRouterApiKey ?? "") || settings.saveAPIKey(apiKeyInput) {
+                            dismiss()
+                        }
+                    }
                         .keyboardShortcut(.defaultAction)
                 }
             }
@@ -152,6 +167,33 @@ struct SettingsView: View {
                 await loadLists()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            Task {
+                remindersManager.refreshAuthorizationStatus()
+                if remindersManager.isAuthorized { await loadLists() }
+            }
+        }
+    }
+
+    private func saveAPIKey() {
+        apiKeySaved = settings.saveAPIKey(apiKeyInput)
+    }
+
+    private var listPicker: some View {
+        Picker("List", selection: Binding<String>(
+            get: { settings.selectedReminderListId ?? "" },
+            set: { id in
+                settings.selectedReminderListId = id.isEmpty ? nil : id
+                settings.selectedReminderListName = reminderLists.first { $0.id == id }?.displayName
+            }
+        )) {
+            Text("Select a list").tag("")
+            ForEach(reminderLists) { list in
+                Text(list.displayName).tag(list.id)
+            }
+        }
+        .labelsHidden()
+        .disabled(isLoadingLists || reminderLists.isEmpty)
     }
 
     private func requestRemindersAccess() async {
@@ -184,6 +226,8 @@ struct SettingsView: View {
             {
                 settings.selectedReminderListId = nil
                 settings.selectedReminderListName = nil
+            } else if let selectedId = settings.selectedReminderListId {
+                settings.selectedReminderListName = reminderLists.first { $0.id == selectedId }?.displayName
             }
         } catch {
             remindersErrorMessage = error.localizedDescription
@@ -197,10 +241,9 @@ struct SettingsView: View {
 
     private func bringWindowToFront() {
         NSApp.activate(ignoringOtherApps: true)
-        guard let window = NSApp.keyWindow ?? NSApp.windows.first(where: { $0.title == "Settings" }) else {
+        guard let window = NSApp.windows.first(where: { $0.title == "Settings" }) else {
             return
         }
-        window.level = .floating
         window.makeKeyAndOrderFront(nil)
         window.orderFrontRegardless()
     }

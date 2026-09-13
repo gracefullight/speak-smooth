@@ -17,35 +17,29 @@ struct GenerableRewriteResult {
 
 @available(macOS 26.0, *)
 final class AppleRewriter: RewriteService, @unchecked Sendable {
-    private let session: LanguageModelSession
-
-    init() {
-        self.session = LanguageModelSession(
+    func rewrite(_ original: String) async throws -> RewriteResult {
+        guard Self.isAvailable else { throw RewriteError.unavailable }
+        let session = LanguageModelSession(
             instructions: """
             You are an English writing assistant.
             Rewrite the user's sentence: fix grammar, improve naturalness for spoken English.
             Preserve the original meaning exactly. Do not add explanations.
             """
         )
-    }
-
-    static var isAvailable: Bool {
-        SystemLanguageModel.default.availability == .available
-    }
-
-    func rewrite(_ original: String) async throws -> RewriteResult {
-        guard Self.isAvailable else { throw RewriteError.unavailable }
-
         let response = try await session.respond(
             to: original,
             generating: GenerableRewriteResult.self
         )
 
         let generated = response.content
-        return RewriteResult(
+        return try RewriteResult(
             revised: generated.revised,
             alternatives: generated.alternatives,
             corrections: generated.corrections
-        )
+        ).validated()
+    }
+
+    static var isAvailable: Bool {
+        SystemLanguageModel.default.availability == .available
     }
 }

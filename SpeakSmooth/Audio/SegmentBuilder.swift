@@ -9,6 +9,9 @@ struct AudioSegment: Sendable {
 final class SegmentBuilder: NSObject, @unchecked Sendable {
     private var accumulatedPCMData = Data()
     private let pcmQueue = DispatchQueue(label: "com.speaksmooth.pcm")
+    private let processingQueue = DispatchQueue(label: "com.speaksmooth.vad")
+    private var isFinished = false
+    private static let maxSegmentBytes = 60 * 16_000 * MemoryLayout<Float>.size
     private var isAccumulating = false
 
     var onSegmentReady: ((AudioSegment) -> Void)?
@@ -39,11 +42,15 @@ final class SegmentBuilder: NSObject, @unchecked Sendable {
     }
 
     func feedAudio(buffer: UnsafePointer<Float>, count: UInt) {
-        vadWrapper.processAudioData(withBuffer: buffer, count: count)
+        processingQueue.sync {
+            guard !isFinished else { return }
+            vadWrapper.processAudioData(withBuffer: buffer, count: count)
+        }
     }
 
     @discardableResult
     func flushPendingSegment() -> Bool {
+        processingQueue.sync { isFinished = true }
         var segment: AudioSegment?
 
         pcmQueue.sync {
@@ -66,14 +73,15 @@ final class SegmentBuilder: NSObject, @unchecked Sendable {
 
     static func convertPCMDataToFloats(_ data: Data) -> [Float] {
         data.withUnsafeBytes { buffer in
-            guard let baseAddress = buffer.baseAddress else { return [] }
-            let floatBuffer = baseAddress.assumingMemoryBound(to: Float.self)
-            return Array(UnsafeBufferPointer(start: floatBuffer, count: data.count / MemoryLayout<Float>.size))
+            stride(from: 0, to: data.count - data.count % MemoryLayout<Float>.size, by: MemoryLayout<Float>.size).map {
+                buffer.loadUnaligned(fromByteOffset: $0, as: Float.self)
+            }
         }
     }
 
     static func vadFrameCount(forSeconds seconds: Double) -> Int {
         let frameMs = 0.032
+        let seconds = seconds.isFinite ? min(max(seconds, 1), 10) : 3
         return Int((seconds / frameMs).rounded(.up))
     }
 }
@@ -104,10 +112,17 @@ extension SegmentBuilder: VADDelegate {
 
     func voiceDidContinue(withPCMFloat pcmFloatData: Data!) {
         guard let data = pcmFloatData else { return }
+        var segments: [AudioSegment] = []
         pcmQueue.sync {
             if isAccumulating {
                 accumulatedPCMData.append(data)
+                while accumulatedPCMData.count >= Self.maxSegmentBytes {
+                    let floats = Self.convertPCMDataToFloats(Data(accumulatedPCMData.prefix(Self.maxSegmentBytes)))
+                    accumulatedPCMData.removeFirst(Self.maxSegmentBytes)
+                    segments.append(AudioSegment(pcmFloats: floats, durationSeconds: 60))
+                }
             }
         }
+        for segment in segments { onSegmentReady?(segment) }
     }
 }

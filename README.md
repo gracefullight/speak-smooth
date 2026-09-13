@@ -27,14 +27,14 @@ brew upgrade --cask speak-smooth
 
 - Captures microphone audio with `AVAudioEngine`
 - Detects speech segments with Silero VAD (`RealTimeCutVADLibrary`)
-- Transcribes locally with WhisperKit (`openai/whisper-base.en`)
+- Transcribes locally with Apple on-device Speech recognition, with WhisperKit as a fallback
 - Rewrites text using Apple Foundation Models (primary) or OpenRouter (fallback)
 - Saves the revised sentence + corrections to an Apple Reminders list
 
 ## Requirements
 
-- macOS 14+
-- Xcode 16+
+- macOS 15.4+ (required by the bundled voice activity detection framework)
+- Xcode 26+ to build; Apple Intelligence rewriting requires macOS 26 and a supported device
 - XcodeGen (`brew install xcodegen`)
 - mise (optional, recommended)
 
@@ -48,8 +48,10 @@ xcodegen generate
 
 2. Configure app secrets/settings:
 
-- Grant Reminders permission when prompted by the app
-- (Optional) Add OpenRouter API key in app Settings UI for rewrite fallback
+- Open Settings, enable Reminders access, and select a writable list
+- (Optional) Add an OpenRouter API key and click **Save Key**. The key is stored in macOS Keychain
+- Click **Start Recording** and grant microphone and speech recognition access when requested
+- Wait for speech recognition preparation to finish before speaking. Whisper fallback may download a model on first use
 
 3. Build and test:
 
@@ -104,4 +106,10 @@ Required GitHub settings:
 ## Notes
 
 - The app is a menu bar utility (`LSUIElement=true`), so no dock icon.
-- Tests cover core logic; microphone/auth/network end-to-end behavior still requires manual verification.
+- **Stop Recording** turns off the microphone while queued sentences finish processing.
+- Changes to the destination list and silence timeout apply to the next recording. API key changes apply to the next sentence processed.
+- Failed reminder saves remain in the popover. Select a writable list and use **Retry Save**, or copy the unsaved text before quitting. Unsaved sentences are held only for the current app session.
+- When rewriting is unavailable, the original transcript is saved. With OpenRouter configured, transcript text is sent to OpenRouter and its model provider; microphone audio is processed locally.
+- The popover provides sentence copying, an **Open Reminders** button, and a quit button that checks for unfinished work.
+- Tests cover settings persistence with an isolated credential store, sequential processing, save recovery, response parsing, audio segmentation, and view rendering. Real microphone capture, system permission dialogs, Apple Intelligence, live OpenRouter requests, and real Reminders writes require manual verification.
+- Release builds use Xcode 26.3 on the [GitHub macOS 15 runner](https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md). Homebrew gates installation to Sequoia or later; the app requires at least 15.4.

@@ -20,7 +20,6 @@ struct SpeakSmoothApp: App {
         _settings = State(initialValue: settings)
         _remindersManager = State(initialValue: remindersManager)
         _coordinator = State(initialValue: coordinator)
-        Task { await coordinator.prepareOnLaunch() }
     }
 
     var body: some Scene {
@@ -34,10 +33,12 @@ struct SpeakSmoothApp: App {
         }
         .menuBarExtraStyle(.window)
 
-        WindowGroup("Settings", id: "settings") {
+        Window("Settings", id: "settings") {
             SettingsView()
                 .environment(settings)
                 .environment(remindersManager)
         }
+        .defaultSize(width: 500, height: 600)
+        .defaultLaunchBehavior(.suppressed)
     }
 }

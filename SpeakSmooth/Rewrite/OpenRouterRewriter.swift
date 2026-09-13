@@ -34,6 +34,7 @@ final class OpenRouterRewriter: RewriteService, @unchecked Sendable {
 
     func rewrite(_ original: String) async throws -> RewriteResult {
         var request = URLRequest(url: Self.endpoint)
+        request.timeoutInterval = 30
         request.httpMethod = "POST"
         request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -45,7 +46,10 @@ final class OpenRouterRewriter: RewriteService, @unchecked Sendable {
         guard let httpResponse = response as? HTTPURLResponse,
               (200..<300).contains(httpResponse.statusCode) else {
             throw RewriteError.networkError(
-                NSError(domain: "OpenRouter", code: (response as? HTTPURLResponse)?.statusCode ?? 0)
+                NSError(
+                    domain: "OpenRouter", code: (response as? HTTPURLResponse)?.statusCode ?? 0,
+                    userInfo: [NSLocalizedDescriptionKey: Self.httpErrorMessage((response as? HTTPURLResponse)?.statusCode ?? 0)]
+                )
             )
         }
 
@@ -53,6 +57,15 @@ final class OpenRouterRewriter: RewriteService, @unchecked Sendable {
     }
 
     // MARK: - Testable Helpers
+
+    static func httpErrorMessage(_ status: Int) -> String {
+        switch status {
+        case 401, 403: return "OpenRouter rejected the API key. Update it in Settings."
+        case 402: return "OpenRouter credits are exhausted."
+        case 429: return "OpenRouter is busy. Try again later."
+        default: return "OpenRouter request failed (HTTP \(status))."
+        }
+    }
 
     static func buildRequestBody(for text: String) -> Data {
         let body: [String: Any] = [
@@ -71,21 +84,27 @@ final class OpenRouterRewriter: RewriteService, @unchecked Sendable {
     static func parseResponse(_ data: Data) throws -> RewriteResult {
         struct OpenRouterResponse: Decodable {
             struct Choice: Decodable {
-                struct Message: Decodable { let content: String }
+                struct Message: Decodable { let content: String? }
                 let message: Message
             }
             let choices: [Choice]
         }
 
         let response = try JSONDecoder().decode(OpenRouterResponse.self, from: data)
-        guard let content = response.choices.first?.message.content else {
+        guard var content = response.choices.first?.message.content?.trimmingCharacters(in: .whitespacesAndNewlines) else {
             throw RewriteError.invalidResponse
         }
 
+        if content.hasPrefix("```"), content.hasSuffix("```") {
+            var lines = content.components(separatedBy: "\n")
+            lines.removeFirst()
+            if !lines.isEmpty { lines.removeLast() }
+            content = lines.joined(separator: "\n")
+        }
         guard let jsonData = content.data(using: .utf8) else {
             throw RewriteError.invalidResponse
         }
 
-        return try JSONDecoder().decode(RewriteResult.self, from: jsonData)
+        return try JSONDecoder().decode(RewriteResult.self, from: jsonData).validated()
     }
 }

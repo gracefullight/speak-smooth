@@ -6,6 +6,16 @@ struct RewriteResult: Codable, Sendable, Equatable {
     let alternatives: [String]
     let corrections: [String]
 
+    func validated() throws -> RewriteResult {
+        let text = revised.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !text.isEmpty else { throw RewriteError.invalidResponse }
+        return RewriteResult(
+            revised: text,
+            alternatives: Array(alternatives.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.prefix(2)),
+            corrections: Array(corrections.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }.prefix(3))
+        )
+    }
+
     func formatTaskBody(original: String) -> String {
         var lines: [String] = []
         if !corrections.isEmpty {

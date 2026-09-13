@@ -69,17 +69,11 @@ struct CoverageBoostTests {
             #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer sk-test")
             #expect(request.value(forHTTPHeaderField: "X-Title") == "SpeakSmooth")
 
-            let payload = """
-            {
-              "choices": [{
-                "message": {
-                  "content": "{\\\"revised\\\":\\\"I should have gone.\\\",\\\"alternatives\\\":[],\\\"corrections\\\":[\\\"verb form\\\"]}"
-                }
-              }]
-            }
-            """
+            let result = RewriteResult(revised: "I should have gone.", alternatives: [], corrections: ["verb form"])
+            let content = String(decoding: try JSONEncoder().encode(result), as: UTF8.self)
+            let payload = try JSONSerialization.data(withJSONObject: ["choices": [["message": ["content": content]]]])
             let response = HTTPURLResponse(url: request.url!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-            return (response, Data(payload.utf8))
+            return (response, payload)
         }
 
         let rewriter = OpenRouterRewriter(apiKey: "sk-test", session: session)
@@ -116,15 +110,18 @@ struct CoverageBoostTests {
 
     @MainActor
     @Test("Coordinator start/stop is stable")
-    func coordinatorStartStop() {
+    func coordinatorStartStop() async {
         let appState = AppState()
-        let settings = AppSettings()
+        let settings = makeTestSettings()
         let remindersManager = RemindersManager()
         let coordinator = PipelineCoordinator(appState: appState, settings: settings, remindersManager: remindersManager)
 
         coordinator.startRecording()
 
         coordinator.stopRecording()
+        await withCheckedContinuation { continuation in
+            DispatchQueue.main.async { continuation.resume() }
+        }
         #expect(appState.pipelineState == .idle)
     }
 
@@ -152,7 +149,7 @@ struct CoverageBoostTests {
     @Test("SwiftUI views render under key branches")
     func viewsRender() {
         let appState = AppState()
-        let settings = AppSettings()
+        let settings = makeTestSettings()
         settings.selectedReminderListName = "English Practice"
         let remindersManager = RemindersManager()
         remindersManager.setAuthorizationStatusForTesting(.fullAccess)
@@ -171,16 +168,30 @@ struct CoverageBoostTests {
             .environment(appState)
             .environment(settings)
             .environment(remindersManager)
+            .background(Color(nsColor: .windowBackgroundColor))
         let popoverHost = NSHostingView(rootView: popover)
         popoverHost.layoutSubtreeIfNeeded()
-        _ = popoverHost.fittingSize
+        #expect(popoverHost.fittingSize.width == 360)
+        exportSnapshot(popoverHost, name: "saved", size: NSSize(width: 360, height: 500))
+
+        appState.startRecording()
+        appState.queuedSegmentCount = 2
+        appState.transitionTo(.rewriting)
+        exportSnapshot(popoverHost, name: "recording", size: NSSize(width: 360, height: 560))
+        appState.stopRecording()
+        appState.queuedSegmentCount = 0
+        appState.handleError("The selected Reminders list is no longer available. Choose another list in Settings and retry saving.")
+        appState.pendingReminders = [PendingReminder(title: "I should have gone to the meeting earlier.", body: "Original: I should went.", listId: "missing")]
+        exportSnapshot(popoverHost, name: "save-failure", size: NSSize(width: 360, height: 650))
 
         let settingsView = SettingsView()
             .environment(settings)
             .environment(remindersManager)
+            .background(Color(nsColor: .windowBackgroundColor))
         let settingsHost = NSHostingView(rootView: settingsView)
         settingsHost.layoutSubtreeIfNeeded()
-        _ = settingsHost.fittingSize
+        #expect(settingsHost.fittingSize.width >= 460)
+        exportSnapshot(settingsHost, name: "settings", size: NSSize(width: 500, height: 680))
 
         let indicatorHost = NSHostingView(rootView: StatusIndicator(state: .rewriting))
         indicatorHost.layoutSubtreeIfNeeded()
@@ -189,6 +200,27 @@ struct CoverageBoostTests {
         let cardHost = NSHostingView(rootView: TaskPreviewCard(task: appState.lastSavedTask!))
         cardHost.layoutSubtreeIfNeeded()
         _ = cardHost.fittingSize
+    }
+
+    @MainActor
+    private func exportSnapshot(_ view: NSView, name: String, size: NSSize) {
+        guard let path = ProcessInfo.processInfo.environment["SPEAKSMOOTH_SNAPSHOT_DIR"] else { return }
+        do {
+            let directory = URL(fileURLWithPath: path)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+            let size = name == "settings" ? size : NSSize(width: size.width, height: view.fittingSize.height)
+            let window = NSWindow(contentRect: NSRect(origin: .zero, size: size), styleMask: .borderless, backing: .buffered, defer: false)
+            window.contentView = view
+            view.frame = NSRect(origin: .zero, size: size)
+            view.layoutSubtreeIfNeeded()
+            let bitmap = try #require(view.bitmapImageRepForCachingDisplay(in: view.bounds))
+            view.cacheDisplay(in: view.bounds, to: bitmap)
+            let data = try #require(bitmap.representation(using: .png, properties: [:]))
+            try data.write(to: directory.appendingPathComponent("\(name).png"))
+            window.contentView = nil
+        } catch {
+            Issue.record("Snapshot failed: \(error)")
+        }
     }
 
     @Test("Error descriptions remain stable")

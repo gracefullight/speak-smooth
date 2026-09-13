@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/gracefullight/speak-smooth/compare/speak-smooth-v0.2.0...speak-smooth-v0.3.0) (2026-09-13)
+
+
+### Features
+
+* open settings as a standalone window ([1e7bb1c](https://github.com/gracefullight/speak-smooth/commit/1e7bb1c7e7a0101932fd18c137129fe4ab71f0d2))
+* replace Microsoft To Do integration with Apple Reminders ([74aca90](https://github.com/gracefullight/speak-smooth/commit/74aca90454eb3096eb1e0aa5da056035ea365852))
+
+
+### Bug Fixes
+
+* improve recording reliability and app usability ([13ebdaf](https://github.com/gracefullight/speak-smooth/commit/13ebdaf15a845e02f6b64c6b2b3629ea35e1f5ee))
+* prevent settings content overflow in menu bar context ([84af720](https://github.com/gracefullight/speak-smooth/commit/84af7207894592bb658206e44a8ae02805887ae3))
+
 ## [0.2.0](https://github.com/gracefullight/speak-smooth/compare/speak-smooth-v0.1.0...speak-smooth-v0.2.0) (2026-02-10)
 
 
